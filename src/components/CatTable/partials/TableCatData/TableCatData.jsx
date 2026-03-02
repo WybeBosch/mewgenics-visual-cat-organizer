@@ -41,6 +41,8 @@ function computeTableHeightForRows(container, rowCount) {
 
 export function TableCatData({
 	cats,
+	activeRoom,
+	setActiveRoom,
 	hoveredCatId,
 	setHoveredCatId,
 	handleSort,
@@ -64,7 +66,7 @@ export function TableCatData({
 
 	const { columns, isPartnerInOtherRoom } = TableCatDataLogic({ cats });
 
-	const normalize = (str) => (str || '').toLowerCase().trim();
+	const normalize = (str) => (str || '').toLowerCase().replace(/\s+/g, ' ').trim();
 
 	const executeSearch = useCallback(
 		(query) => {
@@ -73,12 +75,37 @@ export function TableCatData({
 				setHighlightedCatId(null);
 				return;
 			}
-			const match = sorted.find((cat) =>
+
+			const currentRoomMatch = sorted.find((cat) =>
 				normalize(cat.name).includes(normalizedQuery)
 			);
-			setHighlightedCatId(match ? match.id : null);
+
+			if (currentRoomMatch) {
+				setHighlightedCatId(currentRoomMatch.id);
+				return;
+			}
+
+			const fallbackMatch = cats.find((cat) => {
+				if (cat.room === activeRoom) return false;
+
+				const normalizedName = normalize(cat.name);
+				if (normalizedName === normalizedQuery) return true;
+
+				const nameParts = normalizedName.split(' ');
+				if (nameParts.length <= 1) return false;
+
+				return nameParts[0] === normalizedQuery;
+			});
+
+			if (!fallbackMatch) {
+				setHighlightedCatId(null);
+				return;
+			}
+
+			setActiveRoom(fallbackMatch.room);
+			setHighlightedCatId(fallbackMatch.id);
 		},
-		[sorted]
+		[activeRoom, cats, setActiveRoom, sorted]
 	);
 
 	const handleSearchChange = useCallback(

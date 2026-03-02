@@ -29,6 +29,8 @@ export function CatTable({ cats, rooms, activeRoom, setActiveRoom }) {
 			/>
 			<TableCatData
 				cats={cats}
+				activeRoom={activeRoom}
+				setActiveRoom={setActiveRoom}
 				totalStat={totalStat}
 				aggroColor={aggroColor}
 				hoveredCatId={hoveredCatId}
