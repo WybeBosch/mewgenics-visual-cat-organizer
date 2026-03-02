@@ -115,7 +115,15 @@ export function parsePedigree(pedigree, maxCatKey) {
 		return v !== null && ((v >= 1 && v <= maxCatKey) || v === -1);
 	}
 
+	function scoreParentPair(parent1Key, parent2Key) {
+		if (parent1Key === -1 && parent2Key === -1) return 0;
+		if (parent1Key > 0 && parent2Key > 0 && parent1Key !== parent2Key) return 4;
+		if (parent1Key > 0 && parent2Key > 0 && parent1Key === parent2Key) return -1;
+		return 2;
+	}
+
 	const parentMap = new Map();
+	const parentScoreMap = new Map();
 
 	for (let i = 0; i < allVals.length - 2; i++) {
 		const { off: o1, val: v1 } = allVals[i];
@@ -135,16 +143,18 @@ export function parsePedigree(pedigree, maxCatKey) {
 
 		// File order: (child, parent2, parent1) → store as [parent1, parent2]
 		const pair = [v3, v2];
+		const pairScore = scoreParentPair(pair[0], pair[1]);
 
 		if (!parentMap.has(v1)) {
 			parentMap.set(v1, pair);
-		} else {
-			const existing = parentMap.get(v1);
-			// If previous was (-1,-1), upgrade to this better result
-			if (existing[0] === -1 && existing[1] === -1 && !(v3 === -1 && v2 === -1)) {
-				parentMap.set(v1, pair);
-			}
-			// else: ambiguous — keep first found (matches Python behaviour)
+			parentScoreMap.set(v1, pairScore);
+			continue;
+		}
+
+		const existingScore = parentScoreMap.get(v1) ?? Number.NEGATIVE_INFINITY;
+		if (pairScore > existingScore) {
+			parentMap.set(v1, pair);
+			parentScoreMap.set(v1, pairScore);
 		}
 	}
 

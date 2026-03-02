@@ -441,7 +441,17 @@ def parse_pedigree(pedigree: bytes, max_cat_key: int) -> dict[int, tuple[int, in
     def is_cat_or_sentinel(v):
         return (1 <= v <= max_cat_key) or v == -1
 
+    def score_parent_pair(parent1_key: int, parent2_key: int) -> int:
+        if parent1_key == -1 and parent2_key == -1:
+            return 0
+        if parent1_key > 0 and parent2_key > 0 and parent1_key != parent2_key:
+            return 4
+        if parent1_key > 0 and parent2_key > 0 and parent1_key == parent2_key:
+            return -1
+        return 2
+
     parent_map = {}
+    parent_score_map = {}
 
     for i in range(len(all_vals) - 2):
         o1, v1 = all_vals[i]
@@ -470,12 +480,16 @@ def parse_pedigree(pedigree: bytes, max_cat_key: int) -> dict[int, tuple[int, in
         parent2_key = v2  # first in file = parent2 in game
 
         pair = (parent1_key, parent2_key)
+        pair_score = score_parent_pair(parent1_key, parent2_key)
+
         if v1 not in parent_map:
             parent_map[v1] = pair
-        elif parent_map[v1] != pair and pair != (-1, -1):
-            if parent_map[v1] == (-1, -1):
+            parent_score_map[v1] = pair_score
+        else:
+            existing_score = parent_score_map.get(v1, float('-inf'))
+            if pair_score > existing_score:
                 parent_map[v1] = pair
-            # else: ambiguous (rare, ~9 cats) — keep first found
+                parent_score_map[v1] = pair_score
 
     return parent_map
 
@@ -590,6 +604,8 @@ def extract(save_path: str) -> list[dict]:
     for key in sorted(housed_keys):
         c = housed_cats[key]
         p1_key, p2_key = parent_map.get(key, (-1, -1))
+        if p1_key > 0 and p1_key == p2_key:
+            p2_key = -1
 
         # Grandparents: look up each parent's parents
         gp_keys = []

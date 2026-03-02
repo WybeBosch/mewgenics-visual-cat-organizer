@@ -251,7 +251,10 @@ export async function extractSaveFile(file) {
 
 		return sortedKeys.map((key) => {
 			const cat = housedCats.get(key);
-			const [p1Key, p2Key] = parentMap.get(key) || [-1, -1];
+			let [p1Key, p2Key] = parentMap.get(key) || [-1, -1];
+			if (p1Key > 0 && p1Key === p2Key) {
+				p2Key = -1;
+			}
 
 			// Grandparents: each parent's parent pair
 			const gpKeys = [];
