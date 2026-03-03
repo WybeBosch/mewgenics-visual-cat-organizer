@@ -9,6 +9,7 @@ import io
 import json
 import argparse
 import contextlib
+import datetime
 from pathlib import Path
 from typing import List, Optional, Tuple, Dict, Any
 
@@ -279,6 +280,209 @@ def read_status_flags(dec: bytes, name_end_raw: int) -> Tuple[bool, bool, bool]:
     dead = bool(flags & 0x0020)
     donated = bool(flags & 0x4000)
     return retired, dead, donated
+
+
+def classify_trait(value: float) -> str:
+    if value < 0.333:
+        return "low"
+    if value < 0.667:
+        return "average"
+    return "high"
+
+
+def parse_social_fields(dec: bytes, name_end: int) -> Dict[str, Any]:
+    """Parse icon/libido/aggression/loves/hates from decompressed cat blob."""
+    icon = ""
+    libido_raw = 0.5
+    aggression_raw = 0.5
+    loves_key = -1
+    hates_key = -1
+
+    if name_end + 8 <= len(dec):
+        tag_len = u32_le(dec, name_end)
+        if 0 <= tag_len < 100 and name_end + 8 + tag_len <= len(dec):
+            icon = dec[name_end + 8:name_end + 8 + tag_len].decode("ascii", errors="replace")
+
+    none_off = dec.find(b"None", name_end)
+    if none_off < 0:
+        none_off = dec.find(b"none", name_end)
+
+    if none_off >= 0:
+        slot_base = none_off + 8
+
+        if slot_base + 40 <= len(dec):
+            try:
+                libido_val = struct.unpack_from("<d", dec, slot_base + 0)[0]
+                aggression_val = struct.unpack_from("<d", dec, slot_base + 32)[0]
+                if 0.0 <= libido_val <= 1.0:
+                    libido_raw = libido_val
+                if 0.0 <= aggression_val <= 1.0:
+                    aggression_raw = aggression_val
+            except Exception:
+                pass
+
+        loves_off = slot_base + 16
+        hates_off = slot_base + 40
+        if loves_off + 4 <= len(dec):
+            loves_key = struct.unpack_from("<i", dec, loves_off)[0]
+        if hates_off + 4 <= len(dec):
+            hates_key = struct.unpack_from("<i", dec, hates_off)[0]
+
+    return {
+        "icon": icon,
+        "libido_raw": float(libido_raw),
+        "libido": classify_trait(float(libido_raw)),
+        "aggression_raw": float(aggression_raw),
+        "aggression": classify_trait(float(aggression_raw)),
+        "loves_key": int(loves_key),
+        "hates_key": int(hates_key),
+    }
+
+
+def find_birthday_info(dec: bytes, current_day: Optional[int] = None) -> Tuple[str, Optional[int], Optional[int]]:
+    """Find (class_name, birthday_day, birthday_off) in a decompressed cat blob."""
+    n = len(dec)
+    if n < 64:
+        return ("", None, None)
+
+    age_cap = 500_000
+
+    def _accept(bday: int) -> bool:
+        if current_day is None:
+            return True
+        age = int(current_day) - int(bday)
+        return 0 <= age <= age_cap
+
+    def _looks_ascii_ident(sb: bytes) -> bool:
+        return all(32 <= b < 127 for b in sb)
+
+    def _scan_range(start: int, end: int) -> Optional[Tuple[str, int, int]]:
+        best: Optional[Tuple[str, int, int]] = None
+        for off in range(start, max(start, end - 8)):
+            if off + 8 > n:
+                break
+            ln = u64_le(dec, off)
+            if ln <= 0 or ln > 64:
+                continue
+            str_start = off + 8
+            str_end = str_start + ln
+            if str_end > n:
+                continue
+            ident_raw = dec[str_start:str_end]
+            if not _looks_ascii_ident(ident_raw):
+                continue
+            try:
+                ident = ident_raw.decode("ascii")
+            except Exception:
+                continue
+
+            bday_off = str_end + 12
+            sent_off = bday_off + 8
+            if sent_off + 8 > n:
+                continue
+            bday = struct.unpack_from("<q", dec, bday_off)[0]
+            sentinel = struct.unpack_from("<q", dec, sent_off)[0]
+            if sentinel != -1:
+                continue
+            if not _accept(int(bday)):
+                continue
+
+            cand = (ident, int(bday), int(bday_off))
+            if best is None:
+                best = cand
+            else:
+                _, cur_bday, _ = best
+                cur_age = abs(int(current_day) - cur_bday) if current_day is not None else 0
+                new_age = abs(int(current_day) - int(bday)) if current_day is not None else 0
+                if new_age < cur_age:
+                    best = cand
+        return best
+
+    tail = 2048
+    found = _scan_range(max(0, n - tail), n)
+    if found:
+        return found
+    found = _scan_range(0, n)
+    if found:
+        return found
+    return ("", None, None)
+
+
+def parse_pedigree(blob: bytes, max_cat_key: int) -> Dict[int, Tuple[int, int]]:
+    """Parse pedigree blob and return child_key -> (parent1_key, parent2_key)."""
+    data_start = 552
+    if len(blob) < data_start + 24:
+        return {}
+
+    all_vals: List[Tuple[int, int]] = []
+    for off in range(data_start, len(blob) - 8, 8):
+        v = struct.unpack_from("<q", blob, off)[0]
+        all_vals.append((off, int(v)))
+
+    def is_cat_or_sentinel(v: int) -> bool:
+        return (1 <= v <= max_cat_key) or v == -1
+
+    def score_parent_pair(parent1_key: int, parent2_key: int) -> int:
+        if parent1_key == -1 and parent2_key == -1:
+            return 1
+        if parent1_key > 0 and parent2_key > 0 and parent1_key != parent2_key:
+            return 3
+        if parent1_key > 0 and parent2_key > 0 and parent1_key == parent2_key:
+            return 2
+        return 2
+
+    parent_map: Dict[int, Tuple[int, int]] = {}
+    parent_score_map: Dict[int, int] = {}
+
+    for i in range(len(all_vals) - 2):
+        o1, v1 = all_vals[i]
+        o2, v2 = all_vals[i + 1]
+        o3, v3 = all_vals[i + 2]
+
+        if o2 - o1 != 8 or o3 - o2 != 8:
+            continue
+        if not (1 <= v1 <= max_cat_key):
+            continue
+        if not is_cat_or_sentinel(v2):
+            continue
+        if not is_cat_or_sentinel(v3):
+            continue
+        if v2 != -1 and v1 <= v2:
+            continue
+        if v3 != -1 and v1 <= v3:
+            continue
+
+        parent1_key = v3
+        parent2_key = v2
+        pair_score = score_parent_pair(parent1_key, parent2_key)
+
+        if v1 not in parent_map:
+            parent_map[v1] = (parent1_key, parent2_key)
+            parent_score_map[v1] = pair_score
+        elif pair_score > parent_score_map.get(v1, -1):
+            parent_map[v1] = (parent1_key, parent2_key)
+            parent_score_map[v1] = pair_score
+
+    return parent_map
+
+
+def extract_name_from_blob(dec: bytes) -> str:
+    """Extract cat name from a decompressed cat blob using primary+fallback parser."""
+    _, _, name, _ = detect_name_end_and_sex(dec)
+    if name.strip():
+        return name
+
+    fallback_name = fallback_name_from_fixed_layout(dec)
+    if fallback_name is not None:
+        _, _, name = fallback_name
+        return name
+    return ""
+
+
+def resolve_name(name_lookup: Dict[int, str], key: int) -> str:
+    if key <= 0:
+        return ""
+    return name_lookup.get(key, f"?key{key}")
 
 
 def find_stats(dec: bytes, expected_off: int = 0x1CC, window: int = 0x140) -> Optional[Tuple[int, int, List[int]]]:
@@ -590,6 +794,7 @@ def parse_save_file(data: bytes) -> Dict[str, Any]:
     """Parse entire save file from bytes"""
     conn = sqlite3.connect(":memory:")
     conn.deserialize(data)
+    script_start_time = datetime.datetime.now().replace(microsecond=0).isoformat()
 
     # Read current_day
     current_day = 0
@@ -634,6 +839,16 @@ def parse_save_file(data: bytes) -> Dict[str, Any]:
         if key not in all_keys:
             all_keys[key] = "(ADVENTURE)"
 
+    # Read pedigree and parent relationships
+    parent_map: Dict[int, Tuple[int, int]] = {}
+    pedigree_row = conn.execute("SELECT data FROM files WHERE key='pedigree'").fetchone()
+    pedigree_blob = to_bytes(pedigree_row[0]) if pedigree_row and pedigree_row[0] else b""
+    if pedigree_blob:
+        max_key_row = conn.execute("SELECT key FROM cats ORDER BY key DESC LIMIT 1").fetchone()
+        max_cat_key = int(max_key_row[0]) if max_key_row and max_key_row[0] is not None else 0
+        if max_cat_key > 0:
+            parent_map = parse_pedigree(pedigree_blob, max_cat_key)
+
     # Parse each cat
     cats = []
     for key, room in sorted(all_keys.items()):
@@ -657,8 +872,11 @@ def parse_save_file(data: bytes) -> Dict[str, Any]:
                     name_len, name_end, name = fallback_name
                     print(f"DEBUG: Cat {key} - fallback name parser used, name={name!r}")
             retired, dead, donated = read_status_flags(dec, name_end)
-            cat_class, level, birth_day, level_off, birth_day_off = find_class_and_level(dec, name_end)
+            cat_class, level, birth_day_fallback, level_off, birth_day_off = find_class_and_level(dec, name_end)
             print(f"DEBUG: Cat {key} - name={name}, cat_class={cat_class!r}, level={level}")
+
+            _, birthday_day, _ = find_birthday_info(dec, current_day)
+            birth_day = int(birthday_day) if birthday_day is not None else int(birth_day_fallback)
             age = max(0, current_day - birth_day)
 
             stats_result = find_stats(dec)
@@ -678,6 +896,19 @@ def parse_save_file(data: bytes) -> Dict[str, Any]:
                 stats_off = -1
 
             abilities, mutations = parse_abilities_and_mutations(dec, name_end)
+            social = parse_social_fields(dec, name_end)
+
+            parent1_key, parent2_key = parent_map.get(key, (-1, -1))
+            if parent1_key > 0 and parent1_key == parent2_key:
+                parent2_key = -1
+
+            gp_keys: List[int] = []
+            for parent_key in [parent1_key, parent2_key]:
+                if parent_key > 0:
+                    gp1, gp2 = parent_map.get(parent_key, (-1, -1))
+                    gp_keys.extend([gp1, gp2])
+                else:
+                    gp_keys.extend([-1, -1])
 
             # Ensure arrays have correct lengths
             active = abilities["active"] + [""] * (6 - len(abilities["active"]))
@@ -705,7 +936,21 @@ def parse_save_file(data: bytes) -> Dict[str, Any]:
                     "disorder": disorder
                 },
                 "mutations": mutations,
+                "icon": social["icon"],
+                "libido": social["libido"],
+                "libido_raw": round(social["libido_raw"], 4),
+                "aggression": social["aggression"],
+                "aggression_raw": round(social["aggression_raw"], 4),
                 "room": room,
+                "genealogy": {
+                    "stray": (parent1_key <= 0 and parent2_key <= 0),
+                    "parent1": "",
+                    "parent2": "",
+                    "grandparent1": "",
+                    "grandparent2": "",
+                    "grandparent3": "",
+                    "grandparent4": "",
+                },
                 # Internal fields for saving
                 "_variant": variant,
                 "_name_len": name_len,
@@ -714,15 +959,88 @@ def parse_save_file(data: bytes) -> Dict[str, Any]:
                 "_birth_day_offset": birth_day_off,
                 "_stats_offset": stats_off,
                 "_birth_day": birth_day,
+                "_loves_key": social["loves_key"],
+                "_hates_key": social["hates_key"],
+                "_parent1_key": parent1_key,
+                "_parent2_key": parent2_key,
+                "_grandparent_keys": gp_keys,
             })
         except Exception as e:
             print(f"Error parsing cat {key}: {e}")
             continue
 
+    # Build name lookup from parsed cats
+    name_lookup: Dict[int, str] = {}
+    for cat in cats:
+        if cat["name"].strip():
+            name_lookup[cat["key"]] = cat["name"]
+
+    # Resolve extra keys needed for loves/hates/lineage names
+    needed_keys = set()
+    for cat in cats:
+        lk = int(cat.get("_loves_key", -1))
+        hk = int(cat.get("_hates_key", -1))
+        p1 = int(cat.get("_parent1_key", -1))
+        p2 = int(cat.get("_parent2_key", -1))
+        gks = cat.get("_grandparent_keys", [])
+
+        if lk > 0:
+            needed_keys.add(lk)
+        if hk > 0:
+            needed_keys.add(hk)
+        if p1 > 0:
+            needed_keys.add(p1)
+        if p2 > 0:
+            needed_keys.add(p2)
+        for gk in gks:
+            if int(gk) > 0:
+                needed_keys.add(int(gk))
+
+    missing_keys = [k for k in needed_keys if k not in name_lookup]
+    if missing_keys:
+        placeholders = ",".join("?" for _ in missing_keys)
+        query = f"SELECT key, data FROM cats WHERE key IN ({placeholders})"
+        for rel_key, raw_blob in conn.execute(query, missing_keys).fetchall():
+            if raw_blob is None:
+                continue
+            try:
+                rel_dec, _ = decompress_cat_blob(to_bytes(raw_blob))
+                rel_name = extract_name_from_blob(rel_dec)
+                if rel_name.strip():
+                    name_lookup[int(rel_key)] = rel_name
+            except Exception:
+                continue
+
+    # Materialize loves/hates and lineage names
+    for cat in cats:
+        loves_key = int(cat.get("_loves_key", -1))
+        hates_key = int(cat.get("_hates_key", -1))
+        parent1_key = int(cat.get("_parent1_key", -1))
+        parent2_key = int(cat.get("_parent2_key", -1))
+        gp_keys = cat.get("_grandparent_keys", [-1, -1, -1, -1])
+        genealogy = cat.get("genealogy", {})
+
+        cat["loves"] = resolve_name(name_lookup, loves_key)
+        cat["hates"] = resolve_name(name_lookup, hates_key)
+        genealogy["parent1"] = resolve_name(name_lookup, parent1_key)
+        genealogy["parent2"] = resolve_name(name_lookup, parent2_key)
+        genealogy["grandparent1"] = resolve_name(name_lookup, int(gp_keys[0]) if len(gp_keys) > 0 else -1)
+        genealogy["grandparent2"] = resolve_name(name_lookup, int(gp_keys[1]) if len(gp_keys) > 1 else -1)
+        genealogy["grandparent3"] = resolve_name(name_lookup, int(gp_keys[2]) if len(gp_keys) > 2 else -1)
+        genealogy["grandparent4"] = resolve_name(name_lookup, int(gp_keys[3]) if len(gp_keys) > 3 else -1)
+        cat["genealogy"] = genealogy
+
+        cat.pop("_loves_key", None)
+        cat.pop("_hates_key", None)
+        cat.pop("_parent1_key", None)
+        cat.pop("_parent2_key", None)
+        cat.pop("_grandparent_keys", None)
+
     conn.close()
 
     return {
         "basic": basic_data,
+        "script_start_time": script_start_time,
         "cats": cats,
     }
 
