@@ -7,6 +7,9 @@ import sqlite3
 import struct
 import io
 import json
+import argparse
+import contextlib
+from pathlib import Path
 from typing import List, Optional, Tuple, Dict, Any
 
 # Helper to safely convert BLOB data to bytes (Pyodide may return memoryview)
@@ -1327,3 +1330,52 @@ def modify_save(data_bytes: bytes, modified_basic_json: str, cat_changes_json: s
     print(f"DEBUG: furniture_changes = {furniture_changes}")
 
     return modify_save_file(data_bytes, modified_basic, cat_changes, furniture_changes, output_path)
+
+
+# Usage:
+#   python parse_save.py steamcampaign01.sav -o mewgenics_save.json
+#   python parse_save.py steamcampaign01.sav -o mewgenics_save.json --quiet
+def _run_cli() -> None:
+    """CLI entrypoint for local Python usage."""
+    parser = argparse.ArgumentParser(description="Parse a Mewgenics .sav file and output JSON")
+    parser.add_argument(
+        "input",
+        nargs="?",
+        default="steamcampaign01.sav",
+        help="Path to input save file (default: steamcampaign01.sav)",
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        default="mewgenics_save.json",
+        help="Path to output JSON file (default: mewgenics_save.json)",
+    )
+    parser.add_argument(
+        "-q",
+        "--quiet",
+        action="store_true",
+        help="Suppress debug/output logs",
+    )
+
+    args = parser.parse_args()
+    input_path = Path(args.input)
+    output_path = Path(args.output)
+
+    if not input_path.exists():
+        parser.error(f"Input file not found: {input_path}")
+
+    if args.quiet:
+        with contextlib.redirect_stdout(io.StringIO()):
+            result = parse_save_file(input_path.read_bytes())
+    else:
+        result = parse_save_file(input_path.read_bytes())
+
+    output_path.write_text(json.dumps(result, indent=2), encoding="utf-8")
+
+    if not args.quiet:
+        print(f"Parsed save: {input_path.resolve()}")
+        print(f"Wrote JSON:  {output_path.resolve()}")
+
+
+if __name__ == "__main__":
+    _run_cli()
