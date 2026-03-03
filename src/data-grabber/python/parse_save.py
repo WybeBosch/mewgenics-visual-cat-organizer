@@ -290,6 +290,30 @@ def classify_trait(value: float) -> str:
     return "high"
 
 
+def read_sex_from_tag(dec: bytes, name_end: int) -> str:
+    """Read sex byte from tag layout after name; returns extractor-style labels."""
+    if name_end + 8 > len(dec):
+        return "unknown"
+
+    try:
+        tag_len = u32_le(dec, name_end)
+    except Exception:
+        return "unknown"
+
+    if tag_len < 0 or tag_len > 1000:
+        return "unknown"
+
+    sex_byte_off = name_end + 8 + tag_len
+    if sex_byte_off >= len(dec):
+        return "unknown"
+
+    sex_byte = dec[sex_byte_off]
+    sex_map = {0: "male", 1: "female", 2: "herm"}
+    if sex_byte in sex_map:
+        return sex_map[sex_byte]
+    return f"unknown({sex_byte})"
+
+
 def parse_social_fields(dec: bytes, name_end: int) -> Dict[str, Any]:
     """Parse icon/libido/aggression/loves/hates from decompressed cat blob."""
     icon = ""
@@ -865,12 +889,13 @@ def parse_save_file(data: bytes) -> Dict[str, Any]:
                 continue
 
             id64 = u64_le(dec, 4)
-            name_len, name_end, name, sex = detect_name_end_and_sex(dec)
+            name_len, name_end, name, _ = detect_name_end_and_sex(dec)
             if not name.strip():
                 fallback_name = fallback_name_from_fixed_layout(dec)
                 if fallback_name is not None:
                     name_len, name_end, name = fallback_name
                     print(f"DEBUG: Cat {key} - fallback name parser used, name={name!r}")
+            sex = read_sex_from_tag(dec, name_end)
             retired, dead, donated = read_status_flags(dec, name_end)
             cat_class, level, birth_day_fallback, level_off, birth_day_off = find_class_and_level(dec, name_end)
             print(f"DEBUG: Cat {key} - name={name}, cat_class={cat_class!r}, level={level}")
