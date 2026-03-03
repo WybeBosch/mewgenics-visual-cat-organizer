@@ -231,6 +231,43 @@ def detect_name_end_and_sex(dec: bytes) -> Tuple[int, int, str, str]:
     return nl, end, name, sex
 
 
+def fallback_name_from_fixed_layout(dec: bytes) -> Optional[Tuple[int, int, str]]:
+    """Strict name extraction using fixed layout used by mewgenics_extract.py.
+
+    Layout (after decompression):
+      [12..15] name length (utf-16 code units)
+      [16..19] padding (expected 0)
+      [20..]   utf-16le name bytes
+    """
+    if len(dec) < 20:
+        return None
+
+    try:
+        name_len = u32_le(dec, 12)
+    except Exception:
+        return None
+
+    if not (0 < name_len <= 30):
+        return None
+    if u32_le(dec, 16) != 0:
+        return None
+
+    name_start = 20
+    name_end = name_start + name_len * 2
+    if name_end > len(dec):
+        return None
+
+    try:
+        name = dec[name_start:name_end].decode("utf-16le", errors="strict").rstrip("\x00")
+    except Exception:
+        return None
+
+    if not name.strip():
+        return None
+
+    return int(name_len), int(name_end), name
+
+
 def read_status_flags(dec: bytes, name_end_raw: int) -> Tuple[bool, bool, bool]:
     """Read status flags (retired, dead, donated)"""
     flags_off = name_end_raw + 0x10
@@ -614,6 +651,11 @@ def parse_save_file(data: bytes) -> Dict[str, Any]:
 
             id64 = u64_le(dec, 4)
             name_len, name_end, name, sex = detect_name_end_and_sex(dec)
+            if not name.strip():
+                fallback_name = fallback_name_from_fixed_layout(dec)
+                if fallback_name is not None:
+                    name_len, name_end, name = fallback_name
+                    print(f"DEBUG: Cat {key} - fallback name parser used, name={name!r}")
             retired, dead, donated = read_status_flags(dec, name_end)
             cat_class, level, birth_day, level_off, birth_day_off = find_class_and_level(dec, name_end)
             print(f"DEBUG: Cat {key} - name={name}, cat_class={cat_class!r}, level={level}")
