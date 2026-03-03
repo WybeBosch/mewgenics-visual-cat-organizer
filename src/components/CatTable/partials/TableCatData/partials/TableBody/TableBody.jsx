@@ -1,7 +1,12 @@
 import { useEffect, useRef } from 'react';
 import { STATS, SEX_ICON, CAT_ICON } from '../../../../../../shared/config/config.jsx';
 import { TableTooltipPopup, joinClass } from '../../../../../../shared/utils/utils.jsx';
-import { getAge } from '../../../../../../shared/utils/ageUtils.jsx';
+import {
+	getAge,
+	getCatId,
+	getCatSex,
+	getCatStat,
+} from '../../../../../../shared/utils/catDataUtils.jsx';
 import './TableBody.css';
 
 function NoCatsFoundWarning({ columnsLength }) {
@@ -55,21 +60,23 @@ export function TableBody({
 		<tbody className="table-body">
 			{noCatsFound ? <NoCatsFoundWarning columnsLength={columns.length} /> : null}
 			{sorted.map((cat, i) => {
+				const catId = getCatId(cat, `${cat.name}-${i}`);
+				const catSex = getCatSex(cat);
 				const total = totalStat(cat);
 				const age = getAge(cat);
-				const isHovered = hoveredCatId === cat.id;
-				const isHighlighted = highlightedCatId === cat.id;
+				const isHovered = hoveredCatId === catId;
+				const isHighlighted = highlightedCatId === catId;
 				const partnerInOtherRoom = isPartnerInOtherRoom(cat);
 
 				return (
 					<tr
-						key={cat.id + i}
+						key={catId + i}
 						ref={isHighlighted ? highlightedRowRef : undefined}
 						className={joinClass('row', {
 							hovered: isHovered,
 							'search-match': isHighlighted,
 						})}
-						onMouseEnter={() => setHoveredCatId(cat.id)}
+						onMouseEnter={() => setHoveredCatId(catId)}
 						onMouseLeave={() => setHoveredCatId(null)}
 					>
 						<TableTooltipPopup cat={cat} allCats={cats} />
@@ -82,13 +89,16 @@ export function TableBody({
 						>
 							{age !== null ? age : '—'}
 						</td>
-						<td className={joinClass('cell sex', cat.sex)}>
-							{SEX_ICON[cat.sex] || cat.sex}
+						<td className={joinClass('cell sex', catSex || 'unknown')}>
+							{SEX_ICON[catSex] || cat.sex}
 						</td>
 						<td className="cell icon">{CAT_ICON[cat.icon] || cat.icon || ''}</td>
 						{STATS.map((s) => (
-							<td key={s} className={joinClass('cell stat', getStatClass(cat[s]))}>
-								{cat[s]}
+							<td
+								key={s}
+								className={joinClass('cell stat', getStatClass(getCatStat(cat, s)))}
+							>
+								{getCatStat(cat, s)}
 							</td>
 						))}
 						<td className="cell total">{total}</td>

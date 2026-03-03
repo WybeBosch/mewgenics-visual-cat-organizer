@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { InbreedingTable } from '../../../../../../shared/common/InbreedingTable/InbreedingTable.jsx';
 import { Pill } from '../../../../../../shared/common/Pill/Pill.jsx';
+import { getCatId } from '../../../../../../shared/utils/catDataUtils.jsx';
 import './SvgRelationWarnings.css';
 
 import {
@@ -13,7 +14,7 @@ import {
 } from '../SvgRelationLogic.jsx';
 
 function getCatKey(cat, index) {
-	return cat.id ?? `${cat.name || 'Unknown'}-${index}`;
+	return getCatId(cat, `${cat.name || 'Unknown'}-${index}`);
 }
 
 function getCatDisplayName(cat) {

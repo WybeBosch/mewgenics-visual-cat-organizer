@@ -32,8 +32,16 @@ export function ButtonUploadJson({ onUploadJson }) {
 						}
 						try {
 							const text = await file.text();
-							let data = JSON.parse(text);
-							if (!Array.isArray(data)) data = data.cats || [];
+							const data = JSON.parse(text);
+							const isArrayPayload = Array.isArray(data);
+							const hasCatsArray = !isArrayPayload && Array.isArray(data?.cats);
+							if (!isArrayPayload && !hasCatsArray) {
+								alert(
+									'Invalid JSON shape. Expected an array or an object with a cats array.'
+								);
+								e.target.value = '';
+								return;
+							}
 							if (onUploadJson) onUploadJson(data, file);
 						} catch {
 							alert('Invalid JSON file.');

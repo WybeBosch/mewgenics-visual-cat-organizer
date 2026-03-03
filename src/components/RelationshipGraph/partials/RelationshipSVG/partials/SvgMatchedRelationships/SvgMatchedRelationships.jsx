@@ -1,5 +1,5 @@
 import './SvgMatchedRelationships.css';
-import { isLineTypeActive } from '../SvgRelationLogic.jsx';
+import { isLineTypeActive, normalizeLineageName } from '../SvgRelationLogic.jsx';
 
 export default function SvgMatchedRelationships({ hovIdx, ordered, positions, hiddenLineTypes }) {
 	if (!isLineTypeActive(hiddenLineTypes, 'love')) {
@@ -19,8 +19,8 @@ export default function SvgMatchedRelationships({ hovIdx, ordered, positions, hi
 					if (
 						a.loves &&
 						b.loves &&
-						a.loves === b.name &&
-						b.loves === a.name &&
+						normalizeLineageName(a.loves) === normalizeLineageName(b.name) &&
+						normalizeLineageName(b.loves) === normalizeLineageName(a.name) &&
 						!drawn.has(a.name) &&
 						!drawn.has(b.name)
 					) {

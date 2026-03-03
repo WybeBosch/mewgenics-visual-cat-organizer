@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { STATS } from '../../shared/config/config.jsx';
-import { getAge } from '../../shared/utils/ageUtils.jsx';
+import { getAge, getCatId, getCatStat } from '../../shared/utils/catDataUtils.jsx';
 
 export function CatTableLogic({ cats, activeRoom }) {
 	// Table-specific state
@@ -35,12 +35,15 @@ export function CatTableLogic({ cats, activeRoom }) {
 		},
 		[sortCol, sortAsc]
 	);
-	const totalStat = (cat) => STATS.reduce((sum, s) => sum + cat[s], 0);
+	const totalStat = (cat) => STATS.reduce((sum, s) => sum + getCatStat(cat, s), 0);
 	const roomCats = cats.filter((c) => c.room === activeRoom);
 	const activeFilters = Object.entries(statFilters);
-	const filtered = activeFilters.length > 0
-		? roomCats.filter((cat) => activeFilters.every(([key, val]) => cat[key] === val))
-		: roomCats;
+	const filtered =
+		activeFilters.length > 0
+			? roomCats.filter((cat) =>
+					activeFilters.every(([key, val]) => getCatStat(cat, key) === val)
+				)
+			: roomCats;
 	const sorted = [...filtered].sort((a, b) => {
 		if (!sortCol) return 0;
 		if (sortCol === 'total')
@@ -49,6 +52,16 @@ export function CatTableLogic({ cats, activeRoom }) {
 			const av = getAge(a);
 			const bv = getAge(b);
 			return sortAsc ? av - bv : bv - av;
+		}
+		if (STATS.includes(sortCol)) {
+			const av = getCatStat(a, sortCol);
+			const bv = getCatStat(b, sortCol);
+			return sortAsc ? av - bv : bv - av;
+		}
+		if (sortCol === 'id') {
+			const av = getCatId(a);
+			const bv = getCatId(b);
+			return sortAsc ? av.localeCompare(bv) : bv.localeCompare(av);
 		}
 		const av = a[sortCol],
 			bv = b[sortCol];

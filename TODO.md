@@ -15,7 +15,7 @@ TODO:
 
 - have some logic to easily identify strays in the house
 
- -make a demo mode that moves the moves lol
+    -make a demo mode that moves the moves lol
 
 - add support for mutations showing (Can use .json we save of the guy on mod site that had a json or python file with all mutations)
 

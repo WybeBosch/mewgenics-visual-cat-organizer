@@ -4,6 +4,7 @@ import {
 	isLineTypeActive,
 	isSameRoom,
 } from './SvgRelationLogic.jsx';
+import { getCatId } from '../../../../../shared/utils/catDataUtils.jsx';
 
 export default function SvgLoveHateLines({ hovIdx, ordered, positions, hiddenLineTypes }) {
 	// Add hate and love edges
@@ -21,7 +22,8 @@ export default function SvgLoveHateLines({ hovIdx, ordered, positions, hiddenLin
 						from,
 						to,
 						type: 'hate',
-						fromId: cat.id,
+						fromId: getCatId(cat),
+						toId: getCatId(toCat),
 						toName: toCat.name,
 					});
 			}
@@ -36,7 +38,8 @@ export default function SvgLoveHateLines({ hovIdx, ordered, positions, hiddenLin
 						from,
 						to,
 						type: 'love',
-						fromId: cat.id,
+						fromId: getCatId(cat),
+						toId: getCatId(toCat),
 						toName: toCat.name,
 					});
 				}
@@ -70,13 +73,8 @@ export default function SvgLoveHateLines({ hovIdx, ordered, positions, hiddenLin
 	const visibleEdges = edges.filter((e) => {
 		if (!isLineTypeActive(hiddenLineTypes, e.type)) return false;
 		if (hovIdx === null) return true;
-		const hoveredCat = ordered[hovIdx];
-		return (
-			e.fromId === hoveredCat.id ||
-			(hoveredCat.hates && e.toName === hoveredCat.hates && e.fromId === hoveredCat.id) ||
-			hoveredCat.name === e.to.name ||
-			(hoveredCat.loves && e.toName === hoveredCat.loves && e.fromId === hoveredCat.id)
-		);
+		const hoveredCatId = getCatId(ordered[hovIdx]);
+		return e.fromId === hoveredCatId || e.toId === hoveredCatId;
 	});
 
 	const loveEdges = visibleEdges.filter((e) => e.type === 'love');

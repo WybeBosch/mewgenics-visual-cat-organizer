@@ -2,6 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import { TableCatDataLogic } from './TableCatDataLogic.jsx';
 import { TableHead } from './partials/TableHead/TableHead.jsx';
 import { TableBody } from './partials/TableBody/TableBody.jsx';
+import { getCatId } from '../../../../shared/utils/catDataUtils.jsx';
 import './TableCatData.css';
 
 const MIN_VISIBLE_ROWS = 4;
@@ -81,7 +82,7 @@ export function TableCatData({
 			);
 
 			if (currentRoomMatch) {
-				setHighlightedCatId(currentRoomMatch.id);
+				setHighlightedCatId(getCatId(currentRoomMatch));
 				return;
 			}
 
@@ -103,7 +104,7 @@ export function TableCatData({
 			}
 
 			setActiveRoom(fallbackMatch.room);
-			setHighlightedCatId(fallbackMatch.id);
+			setHighlightedCatId(getCatId(fallbackMatch));
 		},
 		[activeRoom, cats, setActiveRoom, sorted]
 	);

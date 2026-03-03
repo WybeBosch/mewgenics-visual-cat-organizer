@@ -16,15 +16,12 @@ export function Header({
 	isDemoLoaded,
 	savLoading,
 	savError,
+	downloadPayload,
 }) {
 	return (
 		<>
 			<header className="header">
-				<Heading
-					cats={cats}
-					rooms={rooms}
-					dataTimeLineText={dataTimeLineText}
-				/>
+				<Heading cats={cats} rooms={rooms} dataTimeLineText={dataTimeLineText} />
 				<div className="button-bar">
 					<ButtonUploadSave
 						onUploadSav={onUploadSav}
@@ -39,7 +36,7 @@ export function Header({
 							isDemoLoaded={isDemoLoaded}
 						/>
 					</div>
-					<ButtonDownloadJson cats={cats} />
+					<ButtonDownloadJson payload={downloadPayload} />
 				</div>
 			</header>
 		</>

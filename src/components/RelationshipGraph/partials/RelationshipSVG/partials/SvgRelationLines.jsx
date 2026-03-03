@@ -1,6 +1,7 @@
 import {
 	getAncestorNames,
 	getGrandparentNames,
+	getParentNames,
 	isLineTypeActive,
 	isSameRoom,
 	isGrandparentGrandchild,
@@ -39,11 +40,9 @@ export default function SvgRelationLines({ hovIdx, ordered, positions, hiddenLin
 						if (!isSameRoom(hovCat, other)) return null;
 						const from = positions[hovIdx],
 							to = positions[oi];
-						const hovIsParent =
-							normalizeLineageName(other.parent1) ===
-								normalizeLineageName(hovCat.name) ||
-							normalizeLineageName(other.parent2) ===
-								normalizeLineageName(hovCat.name);
+						const hovIsParent = getParentNames(other).includes(
+							normalizeLineageName(hovCat.name)
+						);
 						if (isParentChild(hovCat, other)) {
 							if (!isLineTypeActive(hiddenLineTypes, 'parent')) return null;
 							// Draw line from parent to child, and add emoji at each end
@@ -215,12 +214,12 @@ export default function SvgRelationLines({ hovIdx, ordered, positions, hiddenLin
 									opacity={0.8}
 								>
 									{sibling
-									? isFullSibling(hovCat, other)
-										? 'sibling'
-										: 'half-sibling'
-									: isUncleAunt(hovCat, other)
-										? getUncleAuntLabel(hovCat, other)
-										: 'cousin'}
+										? isFullSibling(hovCat, other)
+											? 'sibling'
+											: 'half-sibling'
+										: isUncleAunt(hovCat, other)
+											? getUncleAuntLabel(hovCat, other)
+											: 'cousin'}
 								</text>
 							</g>
 						);

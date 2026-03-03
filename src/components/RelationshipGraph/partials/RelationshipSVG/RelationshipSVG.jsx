@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { isKitten } from '../../../../shared/utils/ageUtils.jsx';
+import { getCatId, isKitten } from '../../../../shared/utils/catDataUtils.jsx';
 import Tooltip from './partials/Tooltip.jsx';
 import TooltipCloseArea from './partials/TooltipCloseArea.jsx';
 import SvgLoveHateLines from './partials/SvgLoveHateLines.jsx';
@@ -33,17 +33,18 @@ export default function RelationshipSVG({
 		const pairs = [];
 		const paired = new Set();
 		cats.forEach((a) => {
-			if (paired.has(a.id)) return;
+			const aId = getCatId(a);
+			if (paired.has(aId)) return;
 			const match = cats.find((b) => areMutualLovePair(a, b));
-			if (match && !paired.has(match.id)) {
+			if (match && !paired.has(getCatId(match))) {
 				pairs.push([a, match]);
-				paired.add(a.id);
-				paired.add(match.id);
+				paired.add(aId);
+				paired.add(getCatId(match));
 			}
 		});
 
 		// Unpaired cats
-		const unpaired = cats.filter((c) => !paired.has(c.id));
+		const unpaired = cats.filter((c) => !paired.has(getCatId(c)));
 
 		// One-way lovers: cats that love someone in the room, but are not in a mutual pair
 		const oneWayLovers = [];
@@ -72,9 +73,9 @@ export default function RelationshipSVG({
 	// Switch to row layout if there are 15 or more cats
 	const useRowLayout = ordered.length >= 15;
 
-	const selected = ordered.findIndex((c) => c.id === selectedCatId);
+	const selected = ordered.findIndex((c) => getCatId(c) === selectedCatId);
 	const selIdx = selected >= 0 ? selected : null;
-	const hovered = ordered.findIndex((c) => c.id === hoveredCatId);
+	const hovered = ordered.findIndex((c) => getCatId(c) === hoveredCatId);
 	const hovIdx = hovered >= 0 ? hovered : null;
 
 	const W = 800,

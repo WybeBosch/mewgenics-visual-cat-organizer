@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { getCatGenealogyValue, getCatId } from './catDataUtils.jsx';
 import './utils.css';
 
 function joinClass(...parts) {
@@ -44,25 +45,32 @@ function logIfEnabled(...args) {
 function sharedTooltipContents(cat, allCats) {
 	const displayName = (n) => {
 		if (!n) return null;
-		const found = allCats.find((c) => c.name === n || c.id === n);
+		const found = allCats.find((c) => c.name === n || getCatId(c) === n);
 		return found ? found.name : n;
 	};
 	const isParentStray = (c, num) => {
-		if (num === 1) return !c.grandparent1 && !c.grandparent2;
-		return !c.grandparent3 && !c.grandparent4;
+		if (num === 1) {
+			return (
+				!getCatGenealogyValue(c, 'grandparent1') && !getCatGenealogyValue(c, 'grandparent2')
+			);
+		}
+		return !getCatGenealogyValue(c, 'grandparent3') && !getCatGenealogyValue(c, 'grandparent4');
 	};
-	if (cat.stray) return [{ label: 'Stray', value: 'Yes' }];
+	if (getCatGenealogyValue(cat, 'stray')) return [{ label: 'Stray', value: 'Yes' }];
 	const lines = [];
-	if (cat.parent1 || cat.parent2) {
-		const p1 = cat.parent1
-			? displayName(cat.parent1) + (isParentStray(cat, 1) ? ' (Stray)' : '')
-			: '—';
-		const p2 = cat.parent2
-			? displayName(cat.parent2) + (isParentStray(cat, 2) ? ' (Stray)' : '')
-			: '—';
+	const parent1 = getCatGenealogyValue(cat, 'parent1');
+	const parent2 = getCatGenealogyValue(cat, 'parent2');
+	if (parent1 || parent2) {
+		const p1 = parent1 ? displayName(parent1) + (isParentStray(cat, 1) ? ' (Stray)' : '') : '—';
+		const p2 = parent2 ? displayName(parent2) + (isParentStray(cat, 2) ? ' (Stray)' : '') : '—';
 		lines.push({ label: 'Parents', value: `${p1}  ×  ${p2}` });
 	}
-	const gps = [cat.grandparent1, cat.grandparent2, cat.grandparent3, cat.grandparent4];
+	const gps = [
+		getCatGenealogyValue(cat, 'grandparent1'),
+		getCatGenealogyValue(cat, 'grandparent2'),
+		getCatGenealogyValue(cat, 'grandparent3'),
+		getCatGenealogyValue(cat, 'grandparent4'),
+	];
 	if (gps.some((g) => g)) {
 		const gpn = gps.map((g) => (g ? displayName(g) : '—'));
 		lines.push({ label: 'GP (P1 side)', value: `${gpn[0]}  ×  ${gpn[1]}` });
@@ -70,7 +78,7 @@ function sharedTooltipContents(cat, allCats) {
 	}
 	// Partner in other room logic (always last)
 	if (cat.loves) {
-		const partner = allCats.find((c) => c.name === cat.loves || c.id === cat.loves);
+		const partner = allCats.find((c) => c.name === cat.loves || getCatId(c) === cat.loves);
 		if (partner && partner.room && cat.room && partner.room !== cat.room) {
 			lines.push({ label: '—', value: '' }); // separator line
 			lines.push({

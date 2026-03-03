@@ -25,6 +25,7 @@ export default function App() {
 		handleLoadDemo,
 		handleClearData,
 		isDemoLoaded,
+		downloadPayload,
 	} = useMewgenicsCatsLogic();
 
 	return (
@@ -40,6 +41,7 @@ export default function App() {
 				isDemoLoaded={isDemoLoaded}
 				savLoading={savLoading}
 				savError={savError}
+				downloadPayload={downloadPayload}
 			/>
 			<main>
 				<CatTable

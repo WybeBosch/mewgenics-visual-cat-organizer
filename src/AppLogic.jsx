@@ -3,6 +3,11 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 // Optional JSON preload file copied to web root by Vite static copy plugin.
 // This file may not exist in all environments (e.g. web deploy), so load it at runtime.
 import { logIfEnabled } from './shared/utils/utils.jsx';
+import {
+	getCatsFromPayload,
+	getCurrentDayFromPayload,
+	getScriptStartTimeFromPayload,
+} from './shared/utils/catDataUtils.jsx';
 
 export function useMewgenicsCatsLogic() {
 	const [cats, setCats] = useState([]);
@@ -12,6 +17,20 @@ export function useMewgenicsCatsLogic() {
 	const [savLoading, setSavLoading] = useState(false);
 	const [savError, setSavError] = useState(null);
 	const [hoveredCatId, setHoveredCatId] = useState(null);
+	const [payloadMeta, setPayloadMeta] = useState({ basic: null, script_start_time: '' });
+
+	const unpackPayload = useCallback((payloadLike) => {
+		const unpackedCats = getCatsFromPayload(payloadLike);
+		const currentDay = getCurrentDayFromPayload(payloadLike);
+		const scriptStartTime = getScriptStartTimeFromPayload(payloadLike, unpackedCats);
+		return {
+			cats: unpackedCats,
+			payloadMeta: {
+				basic: typeof currentDay === 'number' ? { current_day: currentDay } : null,
+				script_start_time: scriptStartTime,
+			},
+		};
+	}, []);
 
 	const formatDateText = useCallback((value) => {
 		if (value === null || value === undefined || value === '') return '';
@@ -66,6 +85,20 @@ export function useMewgenicsCatsLogic() {
 			? 'No data loaded yet'
 			: `${getSourceLabel(sourceMeta?.sourceType)} - Data Time: ${getSourceMetaDateText(sourceMeta)}`;
 
+	const downloadPayload = useMemo(() => {
+		const payload = { cats };
+		if (
+			payloadMeta?.basic?.current_day !== undefined &&
+			payloadMeta?.basic?.current_day !== null
+		) {
+			payload.basic = payloadMeta.basic;
+		}
+		if (payloadMeta?.script_start_time) {
+			payload.script_start_time = payloadMeta.script_start_time;
+		}
+		return payload;
+	}, [cats, payloadMeta]);
+
 	// Compute rooms from cats (memoized to avoid unnecessary re-renders)
 	const rooms = useMemo(() => Array.from(new Set(cats.map((c) => c.room))), [cats]);
 
@@ -79,8 +112,10 @@ export function useMewgenicsCatsLogic() {
 		let cancelled = false;
 		(async () => {
 			let jsonCats = [];
+			let jsonPayloadMeta = { basic: null, script_start_time: '' };
 			let jsonSourceMeta = null;
 			let storageCats = [];
+			let storagePayloadMeta = { basic: null, script_start_time: '' };
 			let storageSourceMeta = null;
 			let storageFound;
 			try {
@@ -98,10 +133,12 @@ export function useMewgenicsCatsLogic() {
 						throw new Error('No preload JSON found');
 					}
 					const data = await response.json();
-					jsonCats = Array.isArray(data) ? data : data.cats || [];
+					const unpacked = unpackPayload(data);
+					jsonCats = unpacked.cats;
+					jsonPayloadMeta = unpacked.payloadMeta;
 					jsonSourceMeta = {
 						sourceType: 'preload-json',
-						scriptStartTime: jsonCats[0]?.script_start_time || '',
+						scriptStartTime: unpacked.payloadMeta.script_start_time,
 						loadedAt: new Date().toISOString(),
 					};
 				}
@@ -114,12 +151,28 @@ export function useMewgenicsCatsLogic() {
 				storageFound = storageRaw !== null;
 				if (storageRaw !== null) {
 					const parsed = JSON.parse(storageRaw);
-					storageCats = Array.isArray(parsed.cats) ? parsed.cats : [];
+					if (parsed?.payload && typeof parsed.payload === 'object') {
+						const unpacked = unpackPayload(parsed.payload);
+						storageCats = unpacked.cats;
+						storagePayloadMeta = unpacked.payloadMeta;
+					} else {
+						storageCats = Array.isArray(parsed.cats) ? parsed.cats : [];
+						storagePayloadMeta = parsed.payloadMeta || {
+							basic:
+								typeof parsed.current_day === 'number'
+									? { current_day: parsed.current_day }
+									: null,
+							script_start_time:
+								typeof parsed.script_start_time === 'string'
+									? parsed.script_start_time
+									: storageCats[0]?.script_start_time || '',
+						};
+					}
 					storageSourceMeta = parsed.sourceMeta || null;
 					if (!storageSourceMeta) {
 						storageSourceMeta = {
 							sourceType: 'legacy-storage',
-							scriptStartTime: storageCats[0]?.script_start_time || '',
+							scriptStartTime: storagePayloadMeta.script_start_time,
 							loadedAt: new Date().toISOString(),
 						};
 					}
@@ -140,6 +193,7 @@ export function useMewgenicsCatsLogic() {
 			if (!cancelled) {
 				logIfEnabled('[cats] mergedCats:', mergedCats);
 				setCats(mergedCats);
+				setPayloadMeta(useJson ? jsonPayloadMeta : storagePayloadMeta);
 				setSourceMeta(useJson ? jsonSourceMeta : storageSourceMeta);
 				setLoaded(true);
 			}
@@ -147,18 +201,31 @@ export function useMewgenicsCatsLogic() {
 		return () => {
 			cancelled = true;
 		};
-	}, []);
+	}, [unpackPayload]);
 
 	// Save cats to storage
 	useEffect(() => {
 		if (!loaded) return;
 		try {
-			window.localStorage.setItem('mewgenics-v14', JSON.stringify({ cats, sourceMeta }));
+			const payload = { cats };
+			if (
+				payloadMeta?.basic?.current_day !== undefined &&
+				payloadMeta?.basic?.current_day !== null
+			) {
+				payload.basic = payloadMeta.basic;
+			}
+			if (payloadMeta?.script_start_time) {
+				payload.script_start_time = payloadMeta.script_start_time;
+			}
+			window.localStorage.setItem(
+				'mewgenics-v14',
+				JSON.stringify({ payload, cats, payloadMeta, sourceMeta })
+			);
 			logIfEnabled('[cats] saved to localStorage:', cats);
 		} catch (err) {
 			logIfEnabled('[cats] failed to save localStorage:', err);
 		}
-	}, [cats, loaded, sourceMeta]);
+	}, [cats, loaded, payloadMeta, sourceMeta]);
 
 	// Handler for uploaded .sav file
 	const handleUploadSav = useCallback(async (file) => {
@@ -178,14 +245,34 @@ export function useMewgenicsCatsLogic() {
 				scriptStartTime: extractedCats[0]?.script_start_time || '',
 				loadedAt: new Date().toISOString(),
 			};
+			const inferredCurrentDay =
+				typeof extractedCats[0]?.saveDay === 'number' ? extractedCats[0].saveDay : null;
+			const nextPayloadMeta = {
+				basic:
+					typeof inferredCurrentDay === 'number'
+						? { current_day: inferredCurrentDay }
+						: null,
+				script_start_time: extractedCats[0]?.script_start_time || '',
+			};
 			setCats(extractedCats);
+			setPayloadMeta(nextPayloadMeta);
 			setSourceMeta(nextSourceMeta);
 			setLoaded(true);
 			setActiveRoom([...new Set(extractedCats.map((c) => c.room))][0] || '');
 			try {
+				const payload = { cats: extractedCats };
+				if (nextPayloadMeta.basic) payload.basic = nextPayloadMeta.basic;
+				if (nextPayloadMeta.script_start_time) {
+					payload.script_start_time = nextPayloadMeta.script_start_time;
+				}
 				window.localStorage.setItem(
 					'mewgenics-v14',
-					JSON.stringify({ cats: extractedCats, sourceMeta: nextSourceMeta })
+					JSON.stringify({
+						payload,
+						cats: extractedCats,
+						payloadMeta: nextPayloadMeta,
+						sourceMeta: nextSourceMeta,
+					})
 				);
 				logIfEnabled('[sav] saved extractedCats:', extractedCats);
 			} catch (err) {
@@ -206,21 +293,33 @@ export function useMewgenicsCatsLogic() {
 			const response = await fetch(demoUrl, { cache: 'no-store' });
 			if (!response.ok) throw new Error(`Failed to fetch demo data: ${response.status}`);
 			const data = await response.json();
-			const demoCats = Array.isArray(data) ? data : data.cats || [];
+			const unpacked = unpackPayload(data);
+			const demoCats = unpacked.cats;
 			if (!demoCats.length) return;
 			const nextSourceMeta = {
 				sourceType: 'demo',
-				scriptStartTime: demoCats[0]?.script_start_time || '',
+				scriptStartTime: unpacked.payloadMeta.script_start_time,
 				loadedAt: new Date().toISOString(),
 			};
 			setCats(demoCats);
+			setPayloadMeta(unpacked.payloadMeta);
 			setSourceMeta(nextSourceMeta);
 			setLoaded(true);
 			setActiveRoom([...new Set(demoCats.map((c) => c.room))][0] || '');
 			try {
+				const payload = { cats: demoCats };
+				if (unpacked.payloadMeta.basic) payload.basic = unpacked.payloadMeta.basic;
+				if (unpacked.payloadMeta.script_start_time) {
+					payload.script_start_time = unpacked.payloadMeta.script_start_time;
+				}
 				window.localStorage.setItem(
 					'mewgenics-v14',
-					JSON.stringify({ cats: demoCats, sourceMeta: nextSourceMeta })
+					JSON.stringify({
+						payload,
+						cats: demoCats,
+						payloadMeta: unpacked.payloadMeta,
+						sourceMeta: nextSourceMeta,
+					})
 				);
 				logIfEnabled('[demo] loaded demo cats:', demoCats);
 			} catch (err) {
@@ -230,12 +329,13 @@ export function useMewgenicsCatsLogic() {
 			logIfEnabled('[demo] Error loading demo data:', err);
 			alert('Failed to load demo data.');
 		}
-	}, []);
+	}, [unpackPayload]);
 
 	// Handler for clearing all data (reset to initial empty state)
 	const handleClearData = useCallback(() => {
 		setCats([]);
 		setSourceMeta(null);
+		setPayloadMeta({ basic: null, script_start_time: '' });
 		setActiveRoom('');
 		try {
 			window.localStorage.removeItem('mewgenics-v14');
@@ -246,28 +346,44 @@ export function useMewgenicsCatsLogic() {
 	}, []);
 
 	// Handler for uploaded JSON
-	const handleUploadJson = useCallback((uploadedCats, file) => {
-		const nextSourceMeta = {
-			sourceType: 'upload-json',
-			fileModifiedAt: typeof file?.lastModified === 'number' ? file.lastModified : '',
-			scriptStartTime: uploadedCats[0]?.script_start_time || '',
-			loadedAt: new Date().toISOString(),
-		};
-		setCats(uploadedCats);
-		setSourceMeta(nextSourceMeta);
-		setLoaded(true);
-		const newRooms = [...new Set(uploadedCats.map((c) => c.room))];
-		setActiveRoom(newRooms[0] || '');
-		try {
-			window.localStorage.setItem(
-				'mewgenics-v14',
-				JSON.stringify({ cats: uploadedCats, sourceMeta: nextSourceMeta })
-			);
-			logIfEnabled('[json] saved uploadedCats:', uploadedCats);
-		} catch (err) {
-			logIfEnabled('[json] failed to save uploadedCats:', err);
-		}
-	}, []);
+	const handleUploadJson = useCallback(
+		(uploadedPayload, file) => {
+			const unpacked = unpackPayload(uploadedPayload);
+			const uploadedCats = unpacked.cats;
+			const nextSourceMeta = {
+				sourceType: 'upload-json',
+				fileModifiedAt: typeof file?.lastModified === 'number' ? file.lastModified : '',
+				scriptStartTime: unpacked.payloadMeta.script_start_time,
+				loadedAt: new Date().toISOString(),
+			};
+			setCats(uploadedCats);
+			setPayloadMeta(unpacked.payloadMeta);
+			setSourceMeta(nextSourceMeta);
+			setLoaded(true);
+			const newRooms = [...new Set(uploadedCats.map((c) => c.room))];
+			setActiveRoom(newRooms[0] || '');
+			try {
+				const payload = { cats: uploadedCats };
+				if (unpacked.payloadMeta.basic) payload.basic = unpacked.payloadMeta.basic;
+				if (unpacked.payloadMeta.script_start_time) {
+					payload.script_start_time = unpacked.payloadMeta.script_start_time;
+				}
+				window.localStorage.setItem(
+					'mewgenics-v14',
+					JSON.stringify({
+						payload,
+						cats: uploadedCats,
+						payloadMeta: unpacked.payloadMeta,
+						sourceMeta: nextSourceMeta,
+					})
+				);
+				logIfEnabled('[json] saved uploadedCats:', uploadedCats);
+			} catch (err) {
+				logIfEnabled('[json] failed to save uploadedCats:', err);
+			}
+		},
+		[unpackPayload]
+	);
 
 	return {
 		cats,
@@ -286,5 +402,6 @@ export function useMewgenicsCatsLogic() {
 		handleLoadDemo,
 		handleClearData,
 		isDemoLoaded: sourceMeta?.sourceType === 'demo',
+		downloadPayload,
 	};
 }

@@ -1,4 +1,5 @@
 import { STAT_ICONS, STATS, OTHER_INFO_ICONS } from '../../../../shared/config/config.jsx';
+import { getCatId } from '../../../../shared/utils/catDataUtils.jsx';
 
 export function TableCatDataLogic({ cats }) {
 	// Derived columns for table header
@@ -39,10 +40,11 @@ export function TableCatDataLogic({ cats }) {
 	// Helper to get partnerInOtherRoom (must be mutual love)
 	function isPartnerInOtherRoom(cat) {
 		if (!cat.loves) return false;
-		const partner = cats.find((c) => c.name === cat.loves || c.id === cat.loves);
+		const catId = getCatId(cat);
+		const partner = cats.find((c) => c.name === cat.loves || getCatId(c) === cat.loves);
 		if (!partner || !partner.room || !cat.room || partner.room === cat.room) return false;
 		// Only flag if love is mutual
-		return partner.loves === cat.name || partner.loves === cat.id;
+		return partner.loves === cat.name || partner.loves === catId;
 	}
 
 	// Helper to get row background

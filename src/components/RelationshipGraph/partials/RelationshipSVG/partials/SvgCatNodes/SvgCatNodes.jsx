@@ -1,4 +1,5 @@
 import { SEX_ICON } from '../../../../../../shared/config/config.jsx';
+import { getCatId, getCatSex } from '../../../../../../shared/utils/catDataUtils.jsx';
 import { joinClass } from '../../../../../../shared/utils/utils.jsx';
 import './SvgCatNodes.css';
 
@@ -15,8 +16,9 @@ export default function SvgCatNodes({
 	}
 
 	function getNodeSexClass(sex) {
-		if (sex === 'male' || sex === 'female' || sex === 'herm') {
-			return `sex-${sex}`;
+		const normalizedSex = String(sex || '').toLowerCase();
+		if (normalizedSex === 'male' || normalizedSex === 'female' || normalizedSex === 'herm') {
+			return `sex-${normalizedSex}`;
 		}
 		return 'sex-unknown';
 	}
@@ -32,7 +34,8 @@ export default function SvgCatNodes({
 	}
 
 	function getSexIcon(sex) {
-		return SEX_ICON[sex] || sex;
+		const normalizedSex = String(sex || '').toLowerCase();
+		return SEX_ICON[normalizedSex] || sex;
 	}
 
 	function handleMouseEnter(setHoveredCatId, id) {
@@ -52,39 +55,51 @@ export default function SvgCatNodes({
 	return (
 		<g className="nodes">
 			{/* Drawing the circles on the map for each cat*/}
-			{positions.map((p, i) => (
-				<g
-					key={p.name}
-					className={joinClass('node', getNodeSexClass(ordered[i].sex), {
-						'is-hovered': hovIdx === i,
-					})}
-					onMouseEnter={handleMouseEnter(setHoveredCatId, ordered[i].id)}
-					onMouseLeave={handleMouseLeave(setHoveredCatId)}
-					onClick={handleClick(setSelectedCatId, selectedCatId, ordered[i].id)}
-				>
-					<circle
-						className="circle"
-						cx={p.x}
-						cy={p.y}
-						r={p.nodeR || 28}
-						strokeWidth={getCircleStrokeWidth(i, hovIdx)}
-					/>
-					<text
-						className="name"
-						x={p.x}
-						y={p.y - 2}
-						textAnchor="middle"
-						dominantBaseline="middle"
-						fontSize={getNameFontSize(ordered[i].name)}
-						fontWeight={600}
+			{positions.map((p, i) => {
+				const cat = ordered[i];
+				const catId = getCatId(cat, `${cat?.name || 'cat'}-${i}`);
+				const catSex = getCatSex(cat);
+
+				return (
+					<g
+						key={catId || p.name}
+						className={joinClass('node', getNodeSexClass(catSex), {
+							'is-hovered': hovIdx === i,
+						})}
+						onMouseEnter={handleMouseEnter(setHoveredCatId, catId)}
+						onMouseLeave={handleMouseLeave(setHoveredCatId)}
+						onClick={handleClick(setSelectedCatId, selectedCatId, catId)}
 					>
-						{getDisplayName(ordered[i].name)}
-					</text>
-					<text className="sex" x={p.x} y={p.y + 12} textAnchor="middle" fontSize={10}>
-						{getSexIcon(ordered[i].sex)}
-					</text>
-				</g>
-			))}
+						<circle
+							className="circle"
+							cx={p.x}
+							cy={p.y}
+							r={p.nodeR || 28}
+							strokeWidth={getCircleStrokeWidth(i, hovIdx)}
+						/>
+						<text
+							className="name"
+							x={p.x}
+							y={p.y - 2}
+							textAnchor="middle"
+							dominantBaseline="middle"
+							fontSize={getNameFontSize(cat.name)}
+							fontWeight={600}
+						>
+							{getDisplayName(cat.name)}
+						</text>
+						<text
+							className="sex"
+							x={p.x}
+							y={p.y + 12}
+							textAnchor="middle"
+							fontSize={10}
+						>
+							{getSexIcon(catSex)}
+						</text>
+					</g>
+				);
+			})}
 		</g>
 	);
 }

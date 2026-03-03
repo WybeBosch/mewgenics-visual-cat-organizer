@@ -1,13 +1,13 @@
 import { APP_EMOJIS } from '../../../../shared/config/config.jsx';
-import { isKitten } from '../../../../shared/utils/ageUtils.jsx';
+import { getCatSex, isKitten } from '../../../../shared/utils/catDataUtils.jsx';
 import './Heading.css';
 
 export function Heading({ cats, rooms, dataTimeLineText }) {
 	const headingEmoji = import.meta.env.DEV ? APP_EMOJIS.local : APP_EMOJIS.default;
 
-	const maleCount = cats.filter((cat) => cat.sex === 'male').length;
-	const femaleCount = cats.filter((cat) => cat.sex === 'female').length;
-	const hermCount = cats.filter((cat) => cat.sex === 'herm').length;
+	const maleCount = cats.filter((cat) => getCatSex(cat) === 'male').length;
+	const femaleCount = cats.filter((cat) => getCatSex(cat) === 'female').length;
+	const hermCount = cats.filter((cat) => getCatSex(cat) === 'herm').length;
 	const kittenCount = cats.filter((cat) => isKitten(cat)).length;
 
 	return (
