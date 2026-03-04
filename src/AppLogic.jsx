@@ -228,63 +228,60 @@ export function useMewgenicsCatsLogic() {
 	}, [cats, loaded, payloadMeta, sourceMeta]);
 
 	// Handler for uploaded .sav file
-	const handleUploadSav = useCallback(async (file) => {
-		setSavLoading(true);
-		setSavError(null);
-		try {
-			const { extractSaveFile } =
-				await import('./data-grabber/javascript-with-wasm/extractSaveFile.js');
-			const extractedCats = await extractSaveFile(file);
-			if (!extractedCats.length) {
-				setSavError('No housed cats found in save file.');
-				return;
-			}
-			const nextSourceMeta = {
-				sourceType: 'upload-sav',
-				fileModifiedAt: typeof file?.lastModified === 'number' ? file.lastModified : '',
-				scriptStartTime: extractedCats[0]?.script_start_time || '',
-				loadedAt: new Date().toISOString(),
-			};
-			const inferredCurrentDay =
-				typeof extractedCats[0]?.saveDay === 'number' ? extractedCats[0].saveDay : null;
-			const nextPayloadMeta = {
-				basic:
-					typeof inferredCurrentDay === 'number'
-						? { current_day: inferredCurrentDay }
-						: null,
-				script_start_time: extractedCats[0]?.script_start_time || '',
-			};
-			setCats(extractedCats);
-			setPayloadMeta(nextPayloadMeta);
-			setSourceMeta(nextSourceMeta);
-			setLoaded(true);
-			setActiveRoom([...new Set(extractedCats.map((c) => c.room))][0] || '');
+	const handleUploadSav = useCallback(
+		async (file) => {
+			setSavLoading(true);
+			setSavError(null);
 			try {
-				const payload = { cats: extractedCats };
-				if (nextPayloadMeta.basic) payload.basic = nextPayloadMeta.basic;
-				if (nextPayloadMeta.script_start_time) {
-					payload.script_start_time = nextPayloadMeta.script_start_time;
+				const { extractSaveFile } =
+					await import('./data-grabber/python/extractSaveFile.js');
+				const payload = await extractSaveFile(file);
+				const unpacked = unpackPayload(payload);
+				const extractedCats = unpacked.cats;
+				if (!extractedCats.length) {
+					setSavError('No housed cats found in save file.');
+					return;
 				}
-				window.localStorage.setItem(
-					'mewgenics-v14',
-					JSON.stringify({
-						payload,
-						cats: extractedCats,
-						payloadMeta: nextPayloadMeta,
-						sourceMeta: nextSourceMeta,
-					})
-				);
-				logIfEnabled('[sav] saved extractedCats:', extractedCats);
+				const nextSourceMeta = {
+					sourceType: 'upload-sav',
+					fileModifiedAt: typeof file?.lastModified === 'number' ? file.lastModified : '',
+					scriptStartTime: unpacked.payloadMeta.script_start_time,
+					loadedAt: new Date().toISOString(),
+				};
+				const nextPayloadMeta = unpacked.payloadMeta;
+				setCats(extractedCats);
+				setPayloadMeta(nextPayloadMeta);
+				setSourceMeta(nextSourceMeta);
+				setLoaded(true);
+				setActiveRoom([...new Set(extractedCats.map((c) => c.room))][0] || '');
+				try {
+					const payload = { cats: extractedCats };
+					if (nextPayloadMeta.basic) payload.basic = nextPayloadMeta.basic;
+					if (nextPayloadMeta.script_start_time) {
+						payload.script_start_time = nextPayloadMeta.script_start_time;
+					}
+					window.localStorage.setItem(
+						'mewgenics-v14',
+						JSON.stringify({
+							payload,
+							cats: extractedCats,
+							payloadMeta: nextPayloadMeta,
+							sourceMeta: nextSourceMeta,
+						})
+					);
+					logIfEnabled('[sav] saved extractedCats:', extractedCats);
+				} catch (err) {
+					logIfEnabled('[sav] failed to save extractedCats:', err);
+				}
 			} catch (err) {
-				logIfEnabled('[sav] failed to save extractedCats:', err);
+				logIfEnabled('[extractSaveFile] Error:', err);
+				setSavError(`Error reading save file: ${err?.message || String(err)}`);
+			} finally {
+				setSavLoading(false);
 			}
-		} catch (err) {
-			logIfEnabled('[extractSaveFile] Error:', err);
-			setSavError(`Error reading save file: ${err.message}`);
-		} finally {
-			setSavLoading(false);
-		}
-	}, []);
+		},
+		[unpackPayload]
+	);
 
 	// Handler for loading demo data
 	const handleLoadDemo = useCallback(async () => {
