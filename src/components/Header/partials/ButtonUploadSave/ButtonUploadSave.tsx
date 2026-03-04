@@ -1,9 +1,10 @@
-import { ButtonCopySavePath } from '../ButtonCopySavePath/ButtonCopySavePath.jsx';
+import { ButtonCopySavePath } from '../ButtonCopySavePath/ButtonCopySavePath.tsx';
 import { SECURITY_LIMITS } from '../../../../shared/config/config.ts';
 import { joinClass } from '../../../../shared/utils/utils.jsx';
+import type { ButtonUploadSaveProps } from './ButtonUploadSave.types.ts';
 import './ButtonUploadSave.css';
 
-export function ButtonUploadSave({ onUploadSav, savLoading, savError }) {
+export function ButtonUploadSave({ onUploadSav, savLoading, savError }: ButtonUploadSaveProps) {
 	const maxSaveUploadBytes = SECURITY_LIMITS.maxSaveUploadKb * 1024;
 	const maxSaveSizeMb = Math.round(SECURITY_LIMITS.maxSaveUploadKb / 1024);
 	return (
@@ -19,8 +20,8 @@ export function ButtonUploadSave({ onUploadSav, savLoading, savError }) {
 						accept=".sav"
 						disabled={savLoading}
 						className="input"
-						onChange={(e) => {
-							const file = e.target.files?.[0];
+						onChange={(event) => {
+							const file = event.target.files?.[0];
 							if (file) {
 								if (!file.name.endsWith('.sav')) {
 									alert('Please upload a .sav file for the database.');
@@ -32,7 +33,7 @@ export function ButtonUploadSave({ onUploadSav, savLoading, savError }) {
 									onUploadSav?.(file);
 								}
 							}
-							e.target.value = '';
+							event.target.value = '';
 						}}
 					/>
 				</label>

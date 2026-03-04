@@ -1,6 +1,6 @@
 import { RelationshipGraph } from './components/RelationshipGraph/RelationshipGraph.jsx';
 import { CatTable } from './components/CatTable/CatTable.jsx';
-import { Header } from './components/Header/Header.jsx';
+import { Header } from './components/Header/Header.tsx';
 import { useMewgenicsCatsLogic } from './AppLogic.tsx';
 import { useEnvironmentFavicon } from './shared/utils/faviconUtils.ts';
 

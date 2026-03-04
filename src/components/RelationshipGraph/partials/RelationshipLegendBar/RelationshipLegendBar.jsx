@@ -1,4 +1,4 @@
-import { InbreedingTable } from '../../../../shared/common/InbreedingTable/InbreedingTable.jsx';
+import { InbreedingTable } from '../../../../shared/common/InbreedingTable/InbreedingTable.tsx';
 import './RelationshipLegendBar.css';
 
 function RelationshipLegendBar({ hiddenLineTypes, onToggle }) {

@@ -11,8 +11,8 @@ export function ButtonCopySavePath() {
 			await navigator.clipboard.writeText(savePath);
 			setShowPopup(true);
 			setFadeOut(false);
-			setTimeout(() => setFadeOut(true), 900); // Start fade out after 900ms
-			setTimeout(() => setShowPopup(false), 1300); // Hide after fade
+			setTimeout(() => setFadeOut(true), 900);
+			setTimeout(() => setShowPopup(false), 1300);
 		} catch {
 			alert('Failed to copy');
 		}
