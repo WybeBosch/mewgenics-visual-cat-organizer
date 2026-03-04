@@ -197,7 +197,8 @@ function getCatStat(cat: unknown, statKey: string): number {
 		return 0;
 	}
 
-	if (nestedStats && typeof nestedStats[statKey] === 'number') return nestedStats[statKey];
+	const stats = nestedStats as Record<string, unknown> | null;
+	if (stats && typeof stats[statKey] === 'number') return stats[statKey];
 	if (typeof catLike[statKey] === 'number') return catLike[statKey];
 	return 0;
 }

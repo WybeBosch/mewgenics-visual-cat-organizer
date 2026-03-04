@@ -14,7 +14,7 @@
 		"esModuleInterop": true,
 		"forceConsistentCasingInFileNames": true,
 		"skipLibCheck": true,
-		"strict": false,
+		"strict": true,
 		"types": ["vite/client", "node"]
 	},
 	"include": ["src", "vite.config.js"]

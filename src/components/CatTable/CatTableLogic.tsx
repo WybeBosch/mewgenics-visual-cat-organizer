@@ -116,8 +116,8 @@ export function CatTableLogic({ cats, activeRoom }: CatTableLogicParams): CatTab
 			return sortAsc ? libidoA - libidoB : libidoB - libidoA;
 		}
 
-		const valueA = a[sortCol];
-		const valueB = b[sortCol];
+		const valueA = (a as Record<string, unknown>)[sortCol];
+		const valueB = (b as Record<string, unknown>)[sortCol];
 
 		if (typeof valueA === 'string' || typeof valueB === 'string') {
 			const stringA = toComparableString(valueA);
