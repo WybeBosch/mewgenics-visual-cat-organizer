@@ -1,6 +1,12 @@
 import { useState, useCallback } from 'react';
 import { STATS } from '../../shared/config/config.ts';
-import { getAge, getCatId, getCatStat } from '../../shared/utils/catDataUtils.ts';
+import {
+	getAge,
+	getAggressionScore,
+	getCatId,
+	getCatStat,
+	getLibidoScore,
+} from '../../shared/utils/catDataUtils.ts';
 import type {
 	CatTableLogicParams,
 	CatTableLogicResult,
@@ -95,6 +101,18 @@ export function CatTableLogic({ cats, activeRoom }: CatTableLogicParams): CatTab
 			const idA = getCatId(a);
 			const idB = getCatId(b);
 			return sortAsc ? idA.localeCompare(idB) : idB.localeCompare(idA);
+		}
+
+		if (sortCol === 'aggression') {
+			const aggressionA = getAggressionScore(a) ?? -1;
+			const aggressionB = getAggressionScore(b) ?? -1;
+			return sortAsc ? aggressionA - aggressionB : aggressionB - aggressionA;
+		}
+
+		if (sortCol === 'libido') {
+			const libidoA = getLibidoScore(a) ?? -1;
+			const libidoB = getLibidoScore(b) ?? -1;
+			return sortAsc ? libidoA - libidoB : libidoB - libidoA;
 		}
 
 		const valueA = a[sortCol];

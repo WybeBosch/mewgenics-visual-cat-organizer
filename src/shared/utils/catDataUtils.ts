@@ -97,6 +97,97 @@ function getAge(cat: unknown): number | null {
 	return typeof catLike?.age === 'number' ? catLike.age : null;
 }
 
+function normalizeTraitScore(value: number): number {
+	if (!Number.isFinite(value)) return 0;
+	if (value < 0) return 0;
+	if (value <= 1) return value;
+	if (value <= 9) return value / 9;
+	if (value <= 100) return value / 100;
+	return 1;
+}
+
+function toTraitScore(value: unknown): number | null {
+	if (typeof value === 'number' && Number.isFinite(value)) {
+		return normalizeTraitScore(value);
+	}
+	if (typeof value === 'string') {
+		const parsed = Number(value.trim());
+		if (Number.isFinite(parsed)) return normalizeTraitScore(parsed);
+	}
+	return null;
+}
+
+function toTraitLabel(value: unknown): 'low' | 'average' | 'high' | null {
+	if (typeof value !== 'string') return null;
+	const normalized = value.trim().toLowerCase();
+	if (normalized === 'low') return 'low';
+	if (normalized === 'average' || normalized === 'avg' || normalized === 'medium') {
+		return 'average';
+	}
+	if (normalized === 'high') return 'high';
+	return null;
+}
+
+function getAggressionScore(cat: unknown): number | null {
+	const catLike = asCatLike(cat);
+	if (!catLike) return null;
+
+	const rawScore = toTraitScore(catLike.aggression_raw);
+	if (rawScore !== null) return rawScore;
+
+	const numericAggression = toTraitScore(catLike.aggression);
+	if (numericAggression !== null) return numericAggression;
+
+	const aggressionLabel = toTraitLabel(catLike.aggression);
+	if (aggressionLabel === 'low') return 1 / 6;
+	if (aggressionLabel === 'average') return 0.5;
+	if (aggressionLabel === 'high') return 5 / 6;
+
+	return null;
+}
+
+function getAggressionLabel(cat: unknown): 'low' | 'average' | 'high' {
+	const catLike = asCatLike(cat);
+	const labelFromField = toTraitLabel(catLike?.aggression);
+	if (labelFromField) return labelFromField;
+
+	const score = getAggressionScore(cat);
+	if (score === null) return 'average';
+	if (score < 1 / 3) return 'low';
+	if (score < 2 / 3) return 'average';
+	return 'high';
+}
+
+function getLibidoScore(cat: unknown): number | null {
+	const catLike = asCatLike(cat);
+	if (!catLike) return null;
+
+	const rawScore = toTraitScore(catLike.libido_raw);
+	if (rawScore !== null) return rawScore;
+
+	const numericLibido = toTraitScore(catLike.libido);
+	if (numericLibido !== null) return numericLibido;
+
+	const libidoLabel = toTraitLabel(catLike.libido);
+	if (libidoLabel === 'low') return 1 / 6;
+	if (libidoLabel === 'average') return 0.5;
+	if (libidoLabel === 'high') return 5 / 6;
+
+	return null;
+}
+
+function getLibidoLabel(cat: unknown): 'low' | 'average' | 'high' {
+	const catLike = asCatLike(cat);
+	const labelFromField = toTraitLabel(catLike?.libido);
+	if (labelFromField) return labelFromField;
+
+	const score = getLibidoScore(cat);
+	if (score === null) return 'average';
+	if (score < 1 / 3) return 'low';
+	if (score < 2 / 3) return 'average';
+	return 'high';
+}
+
 function isKitten(cat: unknown): boolean {
 	const age = getAge(cat);
 	return age === null || age <= 1;
@@ -113,5 +204,9 @@ export {
 	getCatGenealogyValue,
 	getCatBirthday,
 	getAge,
+	getAggressionScore,
+	getAggressionLabel,
+	getLibidoScore,
+	getLibidoLabel,
 	isKitten,
 };

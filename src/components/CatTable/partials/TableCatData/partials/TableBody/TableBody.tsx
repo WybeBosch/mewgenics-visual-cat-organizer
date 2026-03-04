@@ -3,7 +3,11 @@ import { STATS, SEX_ICON, CAT_ICON } from '../../../../../../shared/config/confi
 import { TableTooltipPopup, joinClass } from '../../../../../../shared/utils/utils.tsx';
 import {
 	getAge,
+	getAggressionLabel,
+	getAggressionScore,
 	getCatId,
+	getLibidoLabel,
+	getLibidoScore,
 	getCatSex,
 	getCatStat,
 } from '../../../../../../shared/utils/catDataUtils.ts';
@@ -49,9 +53,17 @@ export function TableBody({
 		}
 	}, [highlightedCatId]);
 
-	function getAggressionClass(aggression: number): string {
-		if (aggression <= 3) return 'low';
-		if (aggression <= 6) return '';
+	function getAggressionClass(aggressionScore: number | null): string {
+		if (aggressionScore === null) return '';
+		if (aggressionScore < 1 / 3) return 'low';
+		if (aggressionScore < 2 / 3) return '';
+		return 'high';
+	}
+
+	function getLibidoClass(libidoScore: number | null): string {
+		if (libidoScore === null) return '';
+		if (libidoScore < 1 / 3) return 'low';
+		if (libidoScore < 2 / 3) return '';
 		return 'high';
 	}
 
@@ -82,9 +94,10 @@ export function TableBody({
 
 				const iconValue = toIconValue(cat.icon);
 				const sexLabel = toIconValue(cat.sex);
-				const libido = toDisplayText(cat.libido);
-				const aggressionNumber = Number(cat.aggression ?? 0);
-				const aggression = Number.isFinite(aggressionNumber) ? aggressionNumber : 0;
+				const libidoScore = getLibidoScore(cat);
+				const libido = getLibidoLabel(cat);
+				const aggressionScore = getAggressionScore(cat);
+				const aggression = getAggressionLabel(cat);
 
 				return (
 					<tr
@@ -125,11 +138,13 @@ export function TableBody({
 							</td>
 						))}
 						<td className="cell total">{total}</td>
-						<td className="cell info libido">{libido}</td>
+						<td className={joinClass('cell info libido', getLibidoClass(libidoScore))}>
+							{libido}
+						</td>
 						<td
 							className={joinClass(
 								'cell info aggression',
-								getAggressionClass(aggression)
+								getAggressionClass(aggressionScore)
 							)}
 						>
 							{aggression}
