@@ -1,4 +1,4 @@
-import { joinClass } from '../../../../shared/utils/utils.jsx';
+import { joinClass } from '../../../../shared/utils/utils.tsx';
 import type { TableRoomTabsProps } from './TableRoomTabs.types.ts';
 import './TableRoomTabs.css';
 

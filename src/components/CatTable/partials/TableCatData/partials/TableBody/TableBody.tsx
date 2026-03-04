@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { STATS, SEX_ICON, CAT_ICON } from '../../../../../../shared/config/config.ts';
-import { TableTooltipPopup, joinClass } from '../../../../../../shared/utils/utils.jsx';
+import { TableTooltipPopup, joinClass } from '../../../../../../shared/utils/utils.tsx';
 import {
 	getAge,
 	getCatId,
