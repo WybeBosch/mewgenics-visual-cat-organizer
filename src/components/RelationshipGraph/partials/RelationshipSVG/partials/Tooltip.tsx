@@ -1,4 +1,4 @@
-import { sharedTooltipContents } from '../../../../../shared/utils/utils.jsx';
+import { sharedTooltipContents } from '../../../../../shared/utils/utils.tsx';
 import type { GraphPosition } from '../../../RelationshipGraph.types.ts';
 import type { CatRecord } from '../../../../../AppLogic.types.ts';
 

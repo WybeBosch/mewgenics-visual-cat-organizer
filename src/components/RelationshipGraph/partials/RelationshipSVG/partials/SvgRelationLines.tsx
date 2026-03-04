@@ -12,7 +12,7 @@ import {
 	getUncleAuntLabel,
 	normalizeLineageName,
 } from './SvgRelationLogic.tsx';
-import { joinClass } from '../../../../../shared/utils/utils.jsx';
+import { joinClass } from '../../../../../shared/utils/utils.tsx';
 import type { GraphPosition, HiddenLineTypes } from '../../../RelationshipGraph.types.ts';
 import type { CatRecord } from '../../../../../AppLogic.types.ts';
 

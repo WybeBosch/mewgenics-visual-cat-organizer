@@ -1,7 +1,7 @@
 import type { Dispatch, MouseEvent as ReactMouseEvent, SetStateAction } from 'react';
 import { SEX_ICON } from '../../../../../../shared/config/config.ts';
 import { getCatId, getCatSex } from '../../../../../../shared/utils/catDataUtils.ts';
-import { joinClass } from '../../../../../../shared/utils/utils.jsx';
+import { joinClass } from '../../../../../../shared/utils/utils.tsx';
 import type { GraphPosition } from '../../../../RelationshipGraph.types.ts';
 import type { CatRecord } from '../../../../../../AppLogic.types.ts';
 import './SvgCatNodes.css';

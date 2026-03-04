@@ -1,6 +1,6 @@
 import { ButtonCopySavePath } from '../ButtonCopySavePath/ButtonCopySavePath.tsx';
 import { SECURITY_LIMITS } from '../../../../shared/config/config.ts';
-import { joinClass } from '../../../../shared/utils/utils.jsx';
+import { joinClass } from '../../../../shared/utils/utils.tsx';
 import type { ButtonUploadSaveProps } from './ButtonUploadSave.types.ts';
 import './ButtonUploadSave.css';
 

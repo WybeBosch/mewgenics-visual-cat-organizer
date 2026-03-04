@@ -1,9 +1,9 @@
-import { loadPyodide } from 'pyodide';
+import { loadPyodide, type PyodideInterface } from 'pyodide';
 
-let pyodideRuntimePromise;
+let pyodideRuntimePromise: Promise<PyodideInterface> | undefined;
 const SQLITE3_WHEEL_FILE = 'sqlite3-1.0.0-cp313-cp313-pyodide_2025_0_wasm32.whl';
 
-async function initializePyodideRuntime() {
+async function initializePyodideRuntime(): Promise<PyodideInterface> {
 	if (pyodideRuntimePromise) return pyodideRuntimePromise;
 
 	pyodideRuntimePromise = (async () => {
@@ -38,7 +38,7 @@ def parse_save_bridge(data):
 	return pyodideRuntimePromise;
 }
 
-export async function extractSaveFile(file) {
+export async function extractSaveFile(file: File): Promise<unknown> {
 	if (!(file instanceof File)) {
 		throw new TypeError('extractSaveFile expected a File instance.');
 	}
@@ -49,7 +49,7 @@ export async function extractSaveFile(file) {
 	pyodide.globals.set('upload_bytes', bytes);
 	try {
 		const jsonText = await pyodide.runPythonAsync('parse_save_bridge(upload_bytes)');
-		return JSON.parse(jsonText);
+		return JSON.parse(String(jsonText));
 	} finally {
 		pyodide.globals.delete('upload_bytes');
 	}

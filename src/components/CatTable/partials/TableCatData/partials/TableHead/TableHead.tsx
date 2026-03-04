@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { joinClass } from '../../../../../../shared/utils/utils.jsx';
+import { joinClass } from '../../../../../../shared/utils/utils.tsx';
 import type { TableHeadProps } from './TableHead.types.ts';
 import './TableHead.css';
 

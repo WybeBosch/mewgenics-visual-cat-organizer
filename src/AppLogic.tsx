@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 
-import { logIfEnabled } from './shared/utils/utils.jsx';
+import { logIfEnabled } from './shared/utils/utils.tsx';
 import {
 	getCatsFromPayload,
 	getCurrentDayFromPayload,
@@ -267,7 +267,7 @@ export function useMewgenicsCatsLogic() {
 			setSavError(null);
 			try {
 				const { extractSaveFile } =
-					await import('./data-grabber/python/extractSaveFile.js');
+					await import('./data-grabber/python/extractSaveFile.ts');
 				const payload = await extractSaveFile(file);
 				const unpacked = unpackPayload(payload);
 				const extractedCats = unpacked.cats;
