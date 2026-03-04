@@ -22,7 +22,7 @@
         "INT": 7,
         "SPD": 6,
         "CHA": 5,
-        "LUCK": 6
+        "LCK": 6
       },
       "abilities": {
         "active": [
@@ -102,7 +102,7 @@
         "INT": 4,
         "SPD": 5,
         "CHA": 4,
-        "LUCK": 7
+        "LCK": 7
       },
       "abilities": {
         "active": [
@@ -182,7 +182,7 @@
         "INT": 7,
         "SPD": 6,
         "CHA": 5,
-        "LUCK": 4
+        "LCK": 4
       },
       "abilities": {
         "active": [
@@ -262,7 +262,7 @@
         "INT": 6,
         "SPD": 5,
         "CHA": 7,
-        "LUCK": 6
+        "LCK": 6
       },
       "abilities": {
         "active": [
@@ -333,7 +333,7 @@
         "INT": 6,
         "SPD": 5,
         "CHA": 7,
-        "LUCK": 6
+        "LCK": 6
       },
       "abilities": {
         "active": [
@@ -404,7 +404,7 @@
         "INT": 6,
         "SPD": 6,
         "CHA": 5,
-        "LUCK": 6
+        "LCK": 6
       },
       "abilities": {
         "active": [
@@ -475,7 +475,7 @@
         "INT": 6,
         "SPD": 5,
         "CHA": 7,
-        "LUCK": 7
+        "LCK": 7
       },
       "abilities": {
         "active": [
@@ -568,7 +568,7 @@
         "INT": 4,
         "SPD": 5,
         "CHA": 6,
-        "LUCK": 5
+        "LCK": 5
       },
       "abilities": {
         "active": [
@@ -656,7 +656,7 @@
         "INT": 4,
         "SPD": 5,
         "CHA": 5,
-        "LUCK": 7
+        "LCK": 7
       },
       "abilities": {
         "active": [
@@ -749,7 +749,7 @@
         "INT": 6,
         "SPD": 5,
         "CHA": 7,
-        "LUCK": 6
+        "LCK": 6
       },
       "abilities": {
         "active": [
@@ -842,7 +842,7 @@
         "INT": 6,
         "SPD": 6,
         "CHA": 5,
-        "LUCK": 6
+        "LCK": 6
       },
       "abilities": {
         "active": [
@@ -935,7 +935,7 @@
         "INT": 6,
         "SPD": 6,
         "CHA": 6,
-        "LUCK": 4
+        "LCK": 4
       },
       "abilities": {
         "active": [
@@ -1028,7 +1028,7 @@
         "INT": 7,
         "SPD": 5,
         "CHA": 4,
-        "LUCK": 7
+        "LCK": 7
       },
       "abilities": {
         "active": [
@@ -1108,7 +1108,7 @@
         "INT": 6,
         "SPD": 5,
         "CHA": 7,
-        "LUCK": 6
+        "LCK": 6
       },
       "abilities": {
         "active": [
@@ -1201,7 +1201,7 @@
         "INT": 6,
         "SPD": 5,
         "CHA": 7,
-        "LUCK": 6
+        "LCK": 6
       },
       "abilities": {
         "active": [
@@ -1294,7 +1294,7 @@
         "INT": 6,
         "SPD": 5,
         "CHA": 7,
-        "LUCK": 6
+        "LCK": 6
       },
       "abilities": {
         "active": [
@@ -1387,7 +1387,7 @@
         "INT": 6,
         "SPD": 5,
         "CHA": 7,
-        "LUCK": 4
+        "LCK": 4
       },
       "abilities": {
         "active": [
@@ -1480,7 +1480,7 @@
         "INT": 6,
         "SPD": 5,
         "CHA": 7,
-        "LUCK": 4
+        "LCK": 4
       },
       "abilities": {
         "active": [
@@ -1573,7 +1573,7 @@
         "INT": 4,
         "SPD": 5,
         "CHA": 7,
-        "LUCK": 6
+        "LCK": 6
       },
       "abilities": {
         "active": [
@@ -1666,7 +1666,7 @@
         "INT": 7,
         "SPD": 6,
         "CHA": 5,
-        "LUCK": 4
+        "LCK": 4
       },
       "abilities": {
         "active": [
@@ -1759,7 +1759,7 @@
         "INT": 6,
         "SPD": 6,
         "CHA": 6,
-        "LUCK": 7
+        "LCK": 7
       },
       "abilities": {
         "active": [
@@ -1852,7 +1852,7 @@
         "INT": 6,
         "SPD": 5,
         "CHA": 6,
-        "LUCK": 7
+        "LCK": 7
       },
       "abilities": {
         "active": [
@@ -1932,7 +1932,7 @@
         "INT": 6,
         "SPD": 5,
         "CHA": 7,
-        "LUCK": 4
+        "LCK": 4
       },
       "abilities": {
         "active": [
@@ -2025,7 +2025,7 @@
         "INT": 6,
         "SPD": 5,
         "CHA": 7,
-        "LUCK": 4
+        "LCK": 4
       },
       "abilities": {
         "active": [
@@ -2118,7 +2118,7 @@
         "INT": 6,
         "SPD": 6,
         "CHA": 7,
-        "LUCK": 6
+        "LCK": 6
       },
       "abilities": {
         "active": [
@@ -2189,7 +2189,7 @@
         "INT": 6,
         "SPD": 6,
         "CHA": 7,
-        "LUCK": 6
+        "LCK": 6
       },
       "abilities": {
         "active": [
@@ -2282,7 +2282,7 @@
         "INT": 7,
         "SPD": 6,
         "CHA": 4,
-        "LUCK": 7
+        "LCK": 7
       },
       "abilities": {
         "active": [
@@ -2362,7 +2362,7 @@
         "INT": 6,
         "SPD": 5,
         "CHA": 7,
-        "LUCK": 6
+        "LCK": 6
       },
       "abilities": {
         "active": [
@@ -2455,7 +2455,7 @@
         "INT": 6,
         "SPD": 5,
         "CHA": 4,
-        "LUCK": 7
+        "LCK": 7
       },
       "abilities": {
         "active": [
@@ -2535,7 +2535,7 @@
         "INT": 6,
         "SPD": 6,
         "CHA": 7,
-        "LUCK": 6
+        "LCK": 6
       },
       "abilities": {
         "active": [
@@ -2628,7 +2628,7 @@
         "INT": 4,
         "SPD": 5,
         "CHA": 7,
-        "LUCK": 6
+        "LCK": 6
       },
       "abilities": {
         "active": [
@@ -2721,7 +2721,7 @@
         "INT": 4,
         "SPD": 5,
         "CHA": 6,
-        "LUCK": 5
+        "LCK": 5
       },
       "abilities": {
         "active": [
@@ -2814,7 +2814,7 @@
         "INT": 6,
         "SPD": 5,
         "CHA": 7,
-        "LUCK": 6
+        "LCK": 6
       },
       "abilities": {
         "active": [
@@ -2907,7 +2907,7 @@
         "INT": 5,
         "SPD": 6,
         "CHA": 4,
-        "LUCK": 5
+        "LCK": 5
       },
       "abilities": {
         "active": [

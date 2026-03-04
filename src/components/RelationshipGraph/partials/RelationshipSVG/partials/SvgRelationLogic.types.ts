@@ -2,12 +2,9 @@ import type { CatRecord } from '../../../../../AppLogic.types.ts';
 import type { KinshipContext } from '../../../RelationshipGraph.types.ts';
 
 export type RelatedCat = CatRecord & {
-	name?: unknown;
-	sex?: unknown;
-	room?: string;
-	loves?: unknown;
-	hates?: unknown;
 	birthday?: unknown;
+	parent1?: unknown;
+	parent2?: unknown;
 };
 
 export type RelatedPosition = {

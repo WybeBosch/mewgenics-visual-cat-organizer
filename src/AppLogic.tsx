@@ -23,19 +23,6 @@ function getErrorMessage(error: unknown): string {
 	return String(error);
 }
 
-function isCatLike(value: unknown): value is { room?: unknown; [key: string]: unknown } {
-	return Boolean(value && typeof value === 'object' && !Array.isArray(value));
-}
-
-function toCatRecords(value: unknown): CatRecord[] {
-	if (!Array.isArray(value)) return [];
-
-	return value.filter(isCatLike).map((cat) => ({
-		...cat,
-		room: typeof cat.room === 'string' ? cat.room : String(cat.room ?? ''),
-	}));
-}
-
 function isPayloadObject(value: unknown): value is Record<string, unknown> {
 	return Boolean(value && typeof value === 'object' && !Array.isArray(value));
 }
@@ -51,7 +38,7 @@ export function useMewgenicsCatsLogic() {
 	const [payloadMeta, setPayloadMeta] = useState<PayloadMeta>(defaultPayloadMeta);
 
 	const unpackPayload = useCallback((payloadLike: unknown): UnpackedPayload => {
-		const unpackedCats = toCatRecords(getCatsFromPayload(payloadLike));
+		const unpackedCats = getCatsFromPayload(payloadLike);
 		const currentDay = getCurrentDayFromPayload(payloadLike);
 		const scriptStartTime = getScriptStartTimeFromPayload(payloadLike, unpackedCats);
 		return {
@@ -184,7 +171,7 @@ export function useMewgenicsCatsLogic() {
 						storageCats = unpacked.cats;
 						storagePayloadMeta = unpacked.payloadMeta;
 					} else {
-						storageCats = toCatRecords(parsed?.cats);
+						storageCats = getCatsFromPayload({ cats: parsed?.cats });
 						storagePayloadMeta = {
 							basic:
 								typeof parsed?.payloadMeta?.basic?.current_day === 'number'

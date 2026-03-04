@@ -915,10 +915,10 @@ def parse_save_file(data: bytes) -> Dict[str, Any]:
                     "INT": stats_values[3],
                     "SPD": stats_values[4],
                     "CHA": stats_values[5],
-                    "LUCK": stats_values[6]
+                    "LCK": stats_values[6]
                 }
             else:
-                stats = {"STR": 5, "DEX": 5, "CON": 5, "INT": 5, "SPD": 5, "CHA": 5, "LUCK": 5}
+                stats = {"STR": 5, "DEX": 5, "CON": 5, "INT": 5, "SPD": 5, "CHA": 5, "LCK": 5}
                 stats_off = -1
 
             abilities, mutations = parse_abilities_and_mutations(dec, name_end)
