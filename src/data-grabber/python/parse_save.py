@@ -10,6 +10,7 @@ import json
 import argparse
 import contextlib
 import datetime
+import sys
 from pathlib import Path
 from typing import List, Optional, Tuple, Dict, Any
 
@@ -1122,5 +1123,5 @@ def _run_cli() -> None:
         print(f"Wrote JSON:  {output_path.resolve()}")
 
 
-if __name__ == "__main__":
+if __name__ == "__main__" and sys.platform != "emscripten":
     _run_cli()

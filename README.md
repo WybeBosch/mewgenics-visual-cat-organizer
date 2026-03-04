@@ -13,6 +13,7 @@ This project is only meant as a visualiser, you cannot edit your save file with 
 ## Features
 
 - Upload your .sav file and we parse it to get the cats out of it
+- .sav parsing runs in-browser via Pyodide using `src/data-grabber/python/parse_save.py`
 - Visualize cat relationships and attributes
 - No persistent storage or editing
   (Yall can just use some other mod to edit your game)

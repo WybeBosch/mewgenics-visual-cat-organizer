@@ -36,6 +36,7 @@ __pycache__
 
 *.sav
 src/data-grabber/python/public/*.json
+src/data-grabber/python/public/old/*.json
 src/data-grabber/python/public/info
-!src/data-grabber/python/public/example_mewgenics_cats.json
+!src/data-grabber/python/public/example_parse_save_output.json
 !src/data-grabber/python/public/demo_mewgenics_cats.json

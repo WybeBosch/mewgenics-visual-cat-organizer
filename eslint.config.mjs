@@ -10,7 +10,6 @@ export default [
 			'node_modules/**',
 			'dist/**',
 			'build/**',
-			'src/data-grabber/javascript-with-wasm/public/compiled-binaries/**',
 			'src/data-grabber/python/public/*.json',
 		],
 	},
