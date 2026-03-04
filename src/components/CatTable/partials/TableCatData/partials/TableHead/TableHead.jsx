@@ -2,7 +2,17 @@ import { useState } from 'react';
 import { joinClass } from '../../../../../../shared/utils/utils.jsx';
 import './TableHead.css';
 
-export function TableHead({ columns, handleSort, sortCol, sortAsc, searchQuery, onSearchChange, onSearchSubmit, statFilters, setStatFilter }) {
+export function TableHead({
+	columns,
+	handleSort,
+	sortCol,
+	sortAsc,
+	searchQuery,
+	onSearchChange,
+	onSearchSubmit,
+	statFilters,
+	setStatFilter,
+}) {
 	const [hoveredColumn, setHoveredColumn] = useState(null);
 
 	return (
@@ -98,17 +108,20 @@ export function TableHead({ columns, handleSort, sortCol, sortAsc, searchQuery, 
 									/>
 								</div>
 							)}
-							{hoveredColumn === col.key && !col.isStat && col.key !== 'name' && col.tooltip && (
-								<div
-									className={joinClass(
-										'tooltip',
-										tooltipAlignClass,
-										tooltipWidthClass
-									)}
-								>
-									{col.tooltip}
-								</div>
-							)}
+							{hoveredColumn === col.key &&
+								!col.isStat &&
+								col.key !== 'name' &&
+								col.tooltip && (
+									<div
+										className={joinClass(
+											'tooltip',
+											tooltipAlignClass,
+											tooltipWidthClass
+										)}
+									>
+										{col.tooltip}
+									</div>
+								)}
 						</th>
 					);
 				})}
