@@ -8,12 +8,7 @@ import tsPlugin from '@typescript-eslint/eslint-plugin';
 
 export default [
 	{
-		ignores: [
-			'node_modules/**',
-			'dist/**',
-			'build/**',
-			'src/data-grabber/python/public/*.json',
-		],
+		ignores: ['node_modules/**', 'dist/**', 'build/**', 'src/data-grabber/python/public/*.json'],
 	},
 	js.configs.recommended,
 	{
