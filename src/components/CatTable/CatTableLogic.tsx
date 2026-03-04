@@ -7,6 +7,7 @@ import {
 	getCatStat,
 	getLibidoScore,
 } from '../../shared/utils/catDataUtils.ts';
+import type { CatRecord } from '../../AppLogic.types.ts';
 import type {
 	CatTableLogicParams,
 	CatTableLogicResult,
@@ -65,7 +66,7 @@ export function CatTableLogic({ cats, activeRoom }: CatTableLogicParams): CatTab
 		[sortCol, sortAsc]
 	);
 
-	const totalStat = (cat: { [key: string]: unknown }) =>
+	const totalStat = (cat: CatRecord) =>
 		STATS.reduce((sum, statKey) => sum + getCatStat(cat, statKey), 0);
 
 	const roomCats = cats.filter((cat) => cat.room === activeRoom);
