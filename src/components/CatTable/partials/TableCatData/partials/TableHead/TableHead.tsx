@@ -55,7 +55,8 @@ export function TableHead({
 							onClick={isSortable ? () => handleSort(column.key) : undefined}
 						>
 							{hasFilter && (
-								<span
+								<button
+									type="button"
 									className="filter-clear"
 									onClick={(event) => {
 										event.stopPropagation();
@@ -63,7 +64,7 @@ export function TableHead({
 									}}
 								>
 									×
-								</span>
+								</button>
 							)}
 							{column.key === 'name' ? (
 								<input

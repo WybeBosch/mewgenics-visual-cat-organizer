@@ -37,6 +37,6 @@ export type RelationshipSVGProps = {
 };
 
 export type KinshipContext = {
-	lookup: Map<string, CatRecord>;
+	lookup: Map<string, CatRecord & { birthday?: unknown; parent1?: unknown; parent2?: unknown }>;
 	memo: Map<string, number>;
 };
