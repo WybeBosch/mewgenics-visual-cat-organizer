@@ -1,6 +1,7 @@
+import type { ButtonDemoDataProps } from './ButtonDemoData.types.ts';
 import './ButtonDemoData.css';
 
-export function ButtonDemoData({ onLoadDemo, onClearData, isDemoLoaded }) {
+export function ButtonDemoData({ onLoadDemo, onClearData, isDemoLoaded }: ButtonDemoDataProps) {
 	return (
 		<div className="button-demo-data">
 			<button onClick={onLoadDemo} className="button demo">

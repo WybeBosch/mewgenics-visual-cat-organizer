@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
-import { InbreedingTable } from '../../../../../../shared/common/InbreedingTable/InbreedingTable.jsx';
-import { Pill } from '../../../../../../shared/common/Pill/Pill.jsx';
+import { InbreedingTable } from '../../../../../../shared/common/InbreedingTable/InbreedingTable.tsx';
+import { Pill } from '../../../../../../shared/common/Pill/Pill.tsx';
 import { getCatId } from '../../../../../../shared/utils/catDataUtils.ts';
 import './SvgRelationWarnings.css';
 
