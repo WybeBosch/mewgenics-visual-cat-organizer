@@ -132,6 +132,14 @@
 		min-width: 96px;
 		max-width: 96px;
 		color: var(--color-text-neutral);
+
+		&.low {
+			color: var(--color-negative);
+		}
+
+		&.high {
+			color: var(--color-positive-soft);
+		}
 	}
 
 	.aggression {
