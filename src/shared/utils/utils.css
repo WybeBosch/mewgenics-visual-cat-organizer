@@ -14,21 +14,6 @@
 		vertical-align: bottom;
 	}
 
-	.panel {
-		position: fixed;
-		z-index: 99999;
-		top: var(--tooltip-top, 0);
-		left: var(--tooltip-left, 0);
-		min-width: 220px;
-		padding: 10px 14px;
-		border: 1px solid var(--color-border-mid);
-		border-radius: var(--radius-md);
-		background: var(--color-bg-tooltip-panel);
-		box-shadow: var(--shadow-popup-md);
-		pointer-events: none;
-		transform: translateY(-100%);
-	}
-
 	.title {
 		margin-bottom: 6px;
 		color: var(--color-text-primary);

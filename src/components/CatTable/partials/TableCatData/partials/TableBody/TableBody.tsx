@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { Tooltip } from '../../../../../../shared/components/Tooltip/Tooltip.tsx';
 import { STATS, SEX_ICON, CAT_ICON, PARTNER_ICONS } from '../../../../../../shared/config/config.ts';
 import { TableTooltipPopup, joinClass } from '../../../../../../shared/utils/utils.tsx';
 import {
@@ -115,14 +116,17 @@ export function TableBody({
 						<TableTooltipPopup cat={cat} allCats={cats} />
 						<td className="cell partner-indicator">
 						{partnerInfo ? (
-							<span
-								className="partner-detective"
-								title={`This cat's partner is in room ${partnerInfo.partnerRoom} and its partner's name is ${partnerInfo.partnerName}`}
-								onClick={() => onPartnerSearch(partnerInfo.partnerName)}
-								style={{ cursor: 'pointer' }}
+							<Tooltip
+								content={`This cat's partner is in room ${partnerInfo.partnerRoom} and its partner's name is ${partnerInfo.partnerName}`}
 							>
-								{PARTNER_ICONS.detective}
-							</span>
+								<span
+									className="partner-detective"
+									onClick={() => onPartnerSearch(partnerInfo.partnerName)}
+									style={{ cursor: 'pointer' }}
+								>
+									{PARTNER_ICONS.detective}
+								</span>
+							</Tooltip>
 						) : (
 							''
 						)}

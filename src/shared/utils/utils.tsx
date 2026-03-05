@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { CatRecord } from '../../AppLogic.types.ts';
+import { TooltipPanel } from '../components/Tooltip/Tooltip.tsx';
 import { getCatGenealogyValue, getCatId } from './catDataUtils.ts';
 import type {
 	ClassInput,
@@ -143,8 +144,8 @@ function TableTooltipPopup({ cat, allCats }: TableTooltipPopupProps) {
 		>
 			<span className="name">{String(cat.name)}</span>
 			{show && (
-				<div
-					className="panel"
+				<TooltipPanel
+					className="cursor-following"
 					style={
 						{
 							'--tooltip-top': `${pos.y - 10}px`,
@@ -159,7 +160,7 @@ function TableTooltipPopup({ cat, allCats }: TableTooltipPopupProps) {
 							<span className="value">{line.value}</span>
 						</div>
 					))}
-				</div>
+				</TooltipPanel>
 			)}
 		</td>
 	);

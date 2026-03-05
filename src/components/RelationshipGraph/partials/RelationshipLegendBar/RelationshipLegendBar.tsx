@@ -1,14 +1,9 @@
 import { InbreedingTable } from '../../../../shared/common/InbreedingTable/InbreedingTable.tsx';
+import { Tooltip } from '../../../../shared/components/Tooltip/Tooltip.tsx';
 import type { HiddenLineType, HiddenLineTypes } from '../../RelationshipGraph.types.ts';
 import './RelationshipLegendBar.css';
 
-function RelationshipLegendBar({
-	hiddenLineTypes,
-	onToggle,
-}: {
-	hiddenLineTypes: HiddenLineTypes;
-	onToggle: (type: HiddenLineType | string) => void;
-}) {
+function RelationshipLegendBar({ hiddenLineTypes, onToggle }: { hiddenLineTypes: HiddenLineTypes; onToggle: (type: HiddenLineType | string) => void }) {
 	const renderToggleItem = ({
 		key,
 		lineClassName,
@@ -23,22 +18,9 @@ function RelationshipLegendBar({
 		strokeDasharray?: string;
 	}) => (
 		<span className="item" key={key}>
-			<button
-				type="button"
-				onClick={() => onToggle(key)}
-				className={hiddenLineTypes.has(key) ? 'disabled' : ''}
-				aria-pressed={!hiddenLineTypes.has(key)}
-			>
+			<button type="button" onClick={() => onToggle(key)} className={hiddenLineTypes.has(key) ? 'disabled' : ''} aria-pressed={!hiddenLineTypes.has(key)}>
 				<svg width="32" height="8">
-					<line
-						className={lineClassName}
-						x1="0"
-						y1="4"
-						x2="30"
-						y2="4"
-						strokeWidth={strokeWidth}
-						strokeDasharray={strokeDasharray}
-					/>
+					<line className={lineClassName} x1="0" y1="4" x2="30" y2="4" strokeWidth={strokeWidth} strokeDasharray={strokeDasharray} />
 				</svg>
 				<span className="label">{label}</span>
 			</button>
@@ -104,21 +86,13 @@ function RelationshipLegendBar({
 				strokeWidth: 2,
 				strokeDasharray: '8,4',
 			})}
-			<span className="item inbreeding-legend-wrapper">
-				<button
-					type="button"
-					onClick={() => onToggle('inbreeding')}
-					className={hiddenLineTypes.has('inbreeding') ? 'disabled' : ''}
-					aria-pressed={!hiddenLineTypes.has('inbreeding')}
-				>
-					<span className="label legend-label-inbreeding">
-						0% - 25% Inbreeding chance
-					</span>
-				</button>
-				<div className="inbreeding-tooltip">
-					<InbreedingTable />
-				</div>
-			</span>
+			<Tooltip content={<InbreedingTable />} position="above">
+				<span className="item">
+					<button type="button" onClick={() => onToggle('inbreeding')} className={hiddenLineTypes.has('inbreeding') ? 'disabled' : ''} aria-pressed={!hiddenLineTypes.has('inbreeding')}>
+						<span className="label legend-label-inbreeding">0% - 25% Inbreeding chance</span>
+					</button>
+				</span>
+			</Tooltip>
 		</aside>
 	);
 }

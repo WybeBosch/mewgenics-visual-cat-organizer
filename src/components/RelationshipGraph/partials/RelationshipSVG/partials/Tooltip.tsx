@@ -2,19 +2,7 @@ import { sharedTooltipContents } from '../../../../../shared/utils/utils.tsx';
 import type { GraphPosition } from '../../../RelationshipGraph.types.ts';
 import type { CatRecord } from '../../../../../AppLogic.types.ts';
 
-export default function Tooltip({
-	allCats,
-	selIdx,
-	ordered,
-	positions,
-	W,
-}: {
-	allCats: CatRecord[];
-	selIdx: number | null;
-	ordered: CatRecord[];
-	positions: GraphPosition[];
-	W: number;
-}) {
+export default function Tooltip({ allCats, selIdx, ordered, positions, W }: { allCats: CatRecord[]; selIdx: number | null; ordered: CatRecord[]; positions: GraphPosition[]; W: number }) {
 	if (selIdx === null || !ordered || !positions || !ordered[selIdx] || !positions[selIdx]) {
 		return <></>;
 	}
@@ -39,24 +27,8 @@ export default function Tooltip({
 
 	return (
 		<g>
-			<rect
-				className="tooltip-panel"
-				x={tx}
-				y={ty}
-				width={tipW}
-				height={tipH}
-				rx={8}
-				strokeWidth={1}
-				opacity={0.95}
-			/>
-			<text
-				className="tooltip-title"
-				x={tx + tipW / 2}
-				y={ty + 16}
-				textAnchor="middle"
-				fontSize={12}
-				fontWeight={700}
-			>
+			<rect className="tooltip-panel" x={tx} y={ty} width={tipW} height={tipH} rx={8} strokeWidth={1} opacity={0.95} />
+			<text className="tooltip-title" x={tx + tipW / 2} y={ty + 16} textAnchor="middle" fontSize={12} fontWeight={700}>
 				{String(cat.name || '')}
 			</text>
 			{lines.map((line, li) => (
@@ -64,13 +36,7 @@ export default function Tooltip({
 					<text className="tooltip-label" x={tx + 10} y={ty + 36 + li * 22} fontSize={10}>
 						{line.label}:
 					</text>
-					<text
-						className="tooltip-value"
-						x={tx + tipW - 10}
-						y={ty + 36 + li * 22}
-						textAnchor="end"
-						fontSize={10}
-					>
+					<text className="tooltip-value" x={tx + tipW - 10} y={ty + 36 + li * 22} textAnchor="end" fontSize={10}>
 						{line.value}
 					</text>
 				</g>

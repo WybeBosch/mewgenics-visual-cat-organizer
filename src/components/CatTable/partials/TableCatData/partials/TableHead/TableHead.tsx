@@ -1,19 +1,10 @@
 import { useState } from 'react';
+import { TooltipPanel } from '../../../../../../shared/components/Tooltip/Tooltip.tsx';
 import { joinClass } from '../../../../../../shared/utils/utils.tsx';
 import type { TableHeadProps } from './TableHead.types.ts';
 import './TableHead.css';
 
-export function TableHead({
-	columns,
-	handleSort,
-	sortCol,
-	sortAsc,
-	searchQuery,
-	onSearchChange,
-	onSearchSubmit,
-	statFilters,
-	setStatFilter,
-}: TableHeadProps) {
+export function TableHead({ columns, handleSort, sortCol, sortAsc, searchQuery, onSearchChange, onSearchSubmit, statFilters, setStatFilter }: TableHeadProps) {
 	const [hoveredColumn, setHoveredColumn] = useState<string | null>(null);
 
 	return (
@@ -27,12 +18,7 @@ export function TableHead({
 					const textAlignClass = column.key === 'name' ? 'left' : '';
 					const staticClass = isSortable ? '' : 'static';
 					const sortedClass = isSorted ? 'sorted' : '';
-					const tooltipAlignClass = isLeftAlignedTooltip
-						? 'left'
-						: isRightAlignedTooltip
-							? 'right'
-							: '';
-					const tooltipWidthClass = column.key === 'partner-room' ? 'wide' : '';
+					const tooltipAlignClass = isLeftAlignedTooltip ? 'left' : isRightAlignedTooltip ? 'right' : '';
 					const columnClass = `col-${column.key}`;
 					const statClass = column.isStat ? 'col-stat' : '';
 					const hasFilter = column.isStat && statFilters[column.key] != null;
@@ -41,15 +27,7 @@ export function TableHead({
 					return (
 						<th
 							key={column.key}
-							className={joinClass(
-								'cell',
-								columnClass,
-								statClass,
-								textAlignClass,
-								staticClass,
-								sortedClass,
-								hasFilterClass
-							)}
+							className={joinClass('cell', columnClass, statClass, textAlignClass, staticClass, sortedClass, hasFilterClass)}
 							onMouseEnter={() => setHoveredColumn(column.key)}
 							onMouseLeave={() => setHoveredColumn(null)}
 							onClick={isSortable ? () => handleSort(column.key) : undefined}
@@ -81,17 +59,9 @@ export function TableHead({
 							) : (
 								column.label
 							)}
-							{isSorted && (
-								<span className="sort-indicator">{sortAsc ? '▲' : '▼'}</span>
-							)}
+							{isSorted && <span className="sort-indicator">{sortAsc ? '▲' : '▼'}</span>}
 							{hoveredColumn === column.key && column.isStat && (
-								<div
-									className={joinClass(
-										'tooltip',
-										'stat-filter',
-										tooltipAlignClass
-									)}
-								>
+								<TooltipPanel position="below" align={tooltipAlignClass || 'center'} interactive className="stat-filter">
 									<input
 										type="text"
 										className="filter-input"
@@ -108,22 +78,13 @@ export function TableHead({
 										}}
 										onClick={(event) => event.stopPropagation()}
 									/>
-								</div>
+								</TooltipPanel>
 							)}
-							{hoveredColumn === column.key &&
-								!column.isStat &&
-								column.key !== 'name' &&
-								column.tooltip && (
-									<div
-										className={joinClass(
-											'tooltip',
-											tooltipAlignClass,
-											tooltipWidthClass
-										)}
-									>
-										{column.tooltip}
-									</div>
-								)}
+							{hoveredColumn === column.key && !column.isStat && column.key !== 'name' && column.tooltip && (
+								<TooltipPanel position="below" align={tooltipAlignClass || 'center'}>
+									{column.tooltip}
+								</TooltipPanel>
+							)}
 						</th>
 					);
 				})}
